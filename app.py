@@ -60,7 +60,9 @@ def compare_codes():
         return ""
 
     user_code = Code(request.json)
-    return jsonify([server_code.correct_position(user_code), server_code.correct_color(user_code)])
+    correct_positions = server_code.correct_position(user_code)
+    correct_colors = server_code.correct_color(user_code) - correct_positions
+    return jsonify([correct_positions, correct_colors])
 
 
 @app.route('/getCode', methods=['GET'])

@@ -17,3 +17,34 @@ div{
     background-color: black;
 }
 
+.correct-position{
+    height: 5px;
+    width: 5px;
+    border-radius: 50%;
+    background-color: black;
+}
+.correct-color{
+    height: 5px;
+    width: 5px;
+    border-radius: 50%;
+    border: black;
+    background-color: blue;
+}
+#content-div{
+    width: 10%;
+}
+
+.wrapper{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 3fr;
+    grid-column-gap: 2px;
+}
+
+.send-code{
+    border: 1px dot-dash black;
+}
+
+.hints{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
