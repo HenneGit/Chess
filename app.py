@@ -1,8 +1,13 @@
-from flask import Flask, render_template, jsonify, request, json
+from flask import Flask, render_template, jsonify, request, json, session
 from navBarEntry import NavBarEntry
 from charsEnum import CharEnum
+from flask_cors import CORS, cross_origin
+from masterMind import Code, Colors
+from random import randint
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'secret_key'
+CORS(app)
 
 
 @app.route('/someContent', methods=['GET'])
@@ -45,6 +50,32 @@ def get_menu_bar():
 def get_letters():
     word = [CharEnum.H, CharEnum.E, CharEnum.L, CharEnum.L, CharEnum.O]
     return jsonify(word)
+
+
+@app.route('/compareCodes', methods=['GET', 'POST'])
+def compare_codes():
+    if session['code'] is not None:
+        server_code = Code(session['code'])
+    else:
+        return ""
+
+    user_code = Code(request.json)
+    return jsonify([server_code.correct_position(user_code), server_code.correct_color(user_code)])
+
+
+@app.route('/getCode', methods=['GET'])
+def set_code():
+    all_colors = [Colors.RED, Colors.BLUE, Colors.PURPlE, Colors.GREEN, Colors.YELLOW]
+    random_code = list()
+    for i in range(5):
+        is_duplicate = bool(1)
+        while is_duplicate:
+            color = all_colors[randint(0, 3)]
+            if color not in random_code:
+                random_code.append(color)
+                is_duplicate = bool(0)
+    session['code'] = random_code
+    return jsonify(random_code)
 
 
 if __name__ == '__main__':

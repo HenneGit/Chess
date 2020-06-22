@@ -1,9 +1,18 @@
 document.addEventListener('DOMContentLoaded', init);
 
 
-function init() {
-    buildLetterGrid("Hello")
-    makeAjaxCall('/getLetters', 'GET', null, 'application/json', colorLetters);
+async function init() {
+    buildLetterGrid("Hello");
+    // await fetchJson('/getLetters').then((data) => {
+    //     JSON.parse(data);
+    //     colorLetters(data)
+    // });
+
+    await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
+
+
+    console.log("does it wait?");
+    //makeAjaxCall('/getLetters', 'GET', null, 'application/json', colorLetters);
     let display = document.getElementById('display');
     const pixels = display.querySelectorAll('.pixel-active');
 
@@ -93,6 +102,26 @@ async function moveDown() {
     console.log('done');
 }
 
+async function fetchJson(url){
+    let header = {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json, text/plain',
+            'Content-Type': 'application/json'}
+    };
+
+
+    let request = new Request(url, header);
+
+     fetch(url).then(function (resp) {
+         console.log(resp);
+         return resp.json()
+     }).then(function (data) {
+         console.log(data);
+     })
+
+}
+
 
 async function startAnimationAndResolve(row) {
 
@@ -160,7 +189,7 @@ function complete() {
 
 function getShuffledRows() {
     let display = document.getElementById('display');
-
+    let rows = ['r0', ]
     const elements = display.querySelectorAll('.pixel-active');
     let row1 = [];
     let row2 = [];
@@ -204,34 +233,3 @@ function getShuffledRows() {
     return [row7, row6, row5, row4, row3, row2, row1];
 }
 
-function makeAjaxCall(url, method, data, datatype, callback) {
-
-    var request = new XMLHttpRequest();
-    request.open(method, url, false);
-    request.setRequestHeader('Content-type', datatype);
-    request.onreadystatechange = function () {
-        if (request.readyState === 4) {
-            if (request.readyState === 204) {
-                console.log("request success");
-                callback();
-            }
-            if (request.readyState === 200) {
-                var response = request.responseText;
-                callback(response);
-            } else {
-                console.log(request.status + " :request failed");
-
-            }
-        } else {
-            console.log(request.status + " :request processing...")
-        }
-
-    }
-    request.send(data);
-    if (datatype === 'application/json') {
-        callback(JSON.parse(request.responseText));
-    } else {
-        callback(request.responseText);
-    }
-    console.log(" request success");
-}

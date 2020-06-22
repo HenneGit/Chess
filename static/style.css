@@ -10,10 +10,10 @@ div{
     color: cadetblue;
 }
 
-.main-div{
-
-
-
+.circle{
+    height: 25px;
+    width: 25px;
+    border-radius: 50%;
+    background-color: black;
 }
-
 
