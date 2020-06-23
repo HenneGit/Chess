@@ -3,9 +3,10 @@ const colors = ['red', 'green', 'blue', 'green', 'yellow', 'purple'];
 let i = 0;
 
 function init() {
+    const code = setCode();
+    console.log(code);
     setCirclePanel(1);
 }
-
 
 function setCirclePanel(number){
     const div = document.getElementById('content-div');
@@ -13,9 +14,7 @@ function setCirclePanel(number){
     wrapper.id = 'wrapper' + number;
     wrapper.classList.add('wrapper');
     for (let i = 0; i < 4; i++) {
-
         wrapper.appendChild(getCircleElement());
-
     }
     const panel = document.createElement('div');
     panel.id = 'panel' + number;
@@ -25,6 +24,10 @@ function setCirclePanel(number){
     wrapper.appendChild(panel);
     div.appendChild(wrapper);
 
+}
+
+async function setCode(){
+    await fetch('/getCode').then(resp => resp.json()).then( json => console.log(json));
 }
 
 async function sendCode() {
@@ -39,12 +42,12 @@ async function sendCode() {
             colors.push(color);
         }
     }
-    fetch("/compareCodes",
+    await fetch("/compareCodes",
         {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            },ujjjjkj
+            },
             method: "POST",
             body: JSON.stringify(colors)
         }).then(resp => resp.json()).then(json => setHintPanel(json));
@@ -68,8 +71,7 @@ function getCircleElement() {
 
 function getRowCount(){
     let contentDiv = document.getElementById('content-div');
-    let numberOfRows = contentDiv.childElementCount;
-    return numberOfRows;
+    return contentDiv.childElementCount;
 }
 
 async function setHintPanel(hints) {
@@ -98,5 +100,10 @@ async function setHintPanel(hints) {
 
     }
     setCirclePanel(numberOfRows+1);
+
+}
+
+async function resetAnimation() {
+    const allCircles = document.querySelectorAll('.circle');
 
 }

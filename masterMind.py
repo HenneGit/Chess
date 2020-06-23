@@ -4,6 +4,7 @@ class Colors:
     YELLOW = 'yellow'
     PURPlE = 'purple'
     BLUE = 'blue'
+    ORANGE = 'orange'
 
 
 class Code:

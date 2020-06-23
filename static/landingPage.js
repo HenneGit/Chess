@@ -1,15 +1,13 @@
 document.addEventListener('DOMContentLoaded', init);
 
-
+/**
+ * inits the page, collects active pixels and sets animation for appearing.
+ * @returns {Promise<void>}
+ */
 async function init() {
     buildLetterGrid("Hello");
-    // await fetchJson('/getLetters').then((data) => {
-    //     JSON.parse(data);
-    //     colorLetters(data)
-    // });
 
     await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
-
 
     console.log("does it wait?");
     //makeAjaxCall('/getLetters', 'GET', null, 'application/json', colorLetters);
@@ -36,6 +34,11 @@ async function init() {
 
 }
 
+
+/**
+ * sets up the display, adds ids to pixels.
+ * @param word
+ */
 function buildLetterGrid(word) {
 
     let letters = 0;
@@ -123,7 +126,11 @@ async function fetchJson(url) {
 
 }
 
-
+/**
+ * waits 10 * row length ms and starts the animation for given rows.
+ * @param row
+ * @returns {Promise<Promise<unknown>>}
+ */
 async function startAnimationAndResolve(row) {
 
     return new Promise(resolve => {
@@ -134,6 +141,10 @@ async function startAnimationAndResolve(row) {
     });
 }
 
+/**
+ * sets the class to all elements in row with an offset of 10ms
+ * @param row
+ */
 function playAnimation(row) {
 
     let i = 0;
@@ -147,7 +158,10 @@ function playAnimation(row) {
 
 }
 
-
+/**
+ * shuffles all elements of an array.
+ * @param array
+ */
 function shuffle(array) {
     let counter = array.length;
     // While there are elements in the array
@@ -165,17 +179,18 @@ function shuffle(array) {
     }
 }
 
+/**
+ * creates tooltip and appends it to a random pixel. Sets timeout for pixel to add blinking class.
+ */
 function complete() {
-    let display = document.getElementById('display');
-    let pixels = display.querySelectorAll('.pixel-active');
-
+    let pixels = document.querySelectorAll('.pixel-active');
     let toolTip = document.createElement('span');
     toolTip.classList.add('tooltip');
     toolTip.innerText = "Enter";
 
     //add event to tooltip
     toolTip.addEventListener('click', moveDown);
-    const timeOut = setTimeout(function () {
+    const timeOut = setTimeout( () => {
         pix.classList.add('blink');
     }, 1);
 
@@ -188,6 +203,10 @@ function complete() {
 
 }
 
+/**
+ * gets all active pixels of a row and shuffles them. Returns an array with all rows shuffled.
+ * @returns {[]}
+ */
 function getShuffledRows() {
     let elements = document.querySelectorAll('.pixel-active');
     let ids = Array.from(elements).map((element) => element.id);

@@ -67,17 +67,22 @@ def compare_codes():
 
 @app.route('/getCode', methods=['GET'])
 def set_code():
-    all_colors = [Colors.RED, Colors.BLUE, Colors.PURPlE, Colors.GREEN, Colors.YELLOW]
-    random_code = list()
-    for i in range(5):
-        is_duplicate = bool(1)
-        while is_duplicate:
-            color = all_colors[randint(0, 3)]
-            if color not in random_code:
-                random_code.append(color)
-                is_duplicate = bool(0)
-    session['code'] = random_code
-    return jsonify(random_code)
+    if session['code'] is None:
+        all_colors = [Colors.RED, Colors.BLUE, Colors.PURPlE, Colors.GREEN, Colors.YELLOW, Colors.ORANGE]
+        random_code = list()
+        for i in range(4):
+            is_duplicate = bool(1)
+            while is_duplicate:
+                color = all_colors[randint(0, 5)]
+                if color not in random_code:
+                    random_code.append(color)
+                    is_duplicate = bool(0)
+        session['code'] = random_code
+        return jsonify(random_code)
+
+    else:
+        code = session['code']
+        return jsonify(code)
 
 
 if __name__ == '__main__':
