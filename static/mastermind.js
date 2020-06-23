@@ -44,7 +44,7 @@ async function sendCode() {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
-            },
+            },ujjjjkj
             method: "POST",
             body: JSON.stringify(colors)
         }).then(resp => resp.json()).then(json => setHintPanel(json));

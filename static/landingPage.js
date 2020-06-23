@@ -32,7 +32,7 @@ async function init() {
             clearInterval(timer);
             complete();
         }
-        }, 30);
+    }, 30);
 
 }
 
@@ -102,23 +102,24 @@ async function moveDown() {
     console.log('done');
 }
 
-async function fetchJson(url){
+async function fetchJson(url) {
     let header = {
         method: 'GET',
         headers: {
             'Accept': 'application/json, text/plain',
-            'Content-Type': 'application/json'}
+            'Content-Type': 'application/json'
+        }
     };
 
 
     let request = new Request(url, header);
 
-     fetch(url).then(function (resp) {
-         console.log(resp);
-         return resp.json()
-     }).then(function (data) {
-         console.log(data);
-     })
+    fetch(url).then(function (resp) {
+        console.log(resp);
+        return resp.json()
+    }).then(function (data) {
+        console.log(data);
+    })
 
 }
 
@@ -129,7 +130,7 @@ async function startAnimationAndResolve(row) {
         setTimeout(function () {
             playAnimation(row);
             resolve();
-        }, row.length * 10 / 3)
+        }, row.length * 10)
     });
 }
 
@@ -188,48 +189,15 @@ function complete() {
 }
 
 function getShuffledRows() {
-    let display = document.getElementById('display');
-    let rows = ['r0', ]
-    const elements = display.querySelectorAll('.pixel-active');
-    let row1 = [];
-    let row2 = [];
-    let row3 = [];
-    let row4 = [];
-    let row5 = [];
-    let row6 = [];
-    let row7 = [];
+    let elements = document.querySelectorAll('.pixel-active');
+    let ids = Array.from(elements).map((element) => element.id);
 
-    for (let el of elements) {
-        if (el.id.includes('r0')) {
-            row1.push(el.id);
-        }
-        if (el.id.includes('r1')) {
-            row2.push(el.id);
-        }
-        if (el.id.includes('r2')) {
-            row3.push(el.id);
-        }
-        if (el.id.includes('r3')) {
-            row4.push(el.id);
-        }
-        if (el.id.includes('r4')) {
-            row5.push(el.id);
-        }
-        if (el.id.includes('r5')) {
-            row6.push(el.id);
-        }
-        if (el.id.includes('r6')) {
-            row7.push(el.id);
-        }
+    let rowNumbers = ['r6', 'r5', 'r4', 'r3', 'r2', 'r1', 'r0'];
+    let rowIds = [];
+    //filter ids for including each row no and push on rowIds array.
+    rowNumbers.forEach(no => rowIds.push(ids.filter(id => {return id.includes(no)})));
 
-    }
-    shuffle(row1);
-    shuffle(row2);
-    shuffle(row3);
-    shuffle(row4);
-    shuffle(row5);
-    shuffle(row6);
-    shuffle(row7);
-    return [row7, row6, row5, row4, row3, row2, row1];
+    rowIds.forEach((row) => shuffle(row));
+    return rowIds;
 }
 
