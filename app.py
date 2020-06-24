@@ -54,20 +54,23 @@ def get_letters():
 
 @app.route('/compareCodes', methods=['GET', 'POST'])
 def compare_codes():
-    if session['code'] is not None:
-        server_code = Code(session['code'])
+    server_code = Code(session['code'])
+    if server_code is not None:
+        user_code = Code(request.json)
+        correct_positions = server_code.correct_position(user_code)
+        correct_colors = server_code.correct_color(user_code) - correct_positions
+        return jsonify([correct_positions, correct_colors])
+
     else:
         return ""
-
-    user_code = Code(request.json)
-    correct_positions = server_code.correct_position(user_code)
-    correct_colors = server_code.correct_color(user_code) - correct_positions
-    return jsonify([correct_positions, correct_colors])
 
 
 @app.route('/getCode', methods=['GET'])
 def set_code():
-    if session['code'] is None:
+    try:
+        code = session['code']
+        return jsonify(code)
+    except KeyError:
         all_colors = [Colors.RED, Colors.BLUE, Colors.PURPlE, Colors.GREEN, Colors.YELLOW, Colors.ORANGE]
         random_code = list()
         for i in range(4):
@@ -79,10 +82,6 @@ def set_code():
                     is_duplicate = bool(0)
         session['code'] = random_code
         return jsonify(random_code)
-
-    else:
-        code = session['code']
-        return jsonify(code)
 
 
 if __name__ == '__main__':
