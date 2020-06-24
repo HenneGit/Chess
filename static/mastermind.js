@@ -28,7 +28,6 @@ function setCirclePanel(number) {
     let circles = div.querySelectorAll('.circle');
     playNewRowAnimation(circles);
 
-
 }
 
 function playNewRowAnimation(circles) {

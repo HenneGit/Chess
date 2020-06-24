@@ -1,14 +1,14 @@
-document.addEventListener('DOMContentLoaded', initSidebar);
+document.addEventListener('DOMContentLoaded', init);
 
-function initSidebar() {
-    makeAjaxCall('/getMenu', 'GET', null, 'application/json', addSideBar);
 
+async function init() {
+    await fetch('/getMenu').then(resp => resp.json()).then(data => addSideBar(data));
 }
 
-function addSideBar(data) {
-    let mainDiv = document.getElementById('main-div');
-    let dataJson = JSON.parse(data)
-    for (let entry of dataJson) {
+function addSideBar(data){
+    let dataParsed = JSON.parse(data);
+    let mainDiv = document.getElementById('nav-bar');
+    for (let entry of dataParsed) {
 
         let div = document.createElement("div");
         let p = document.createElement("div");
@@ -24,14 +24,15 @@ function addSideBar(data) {
     }
 }
 
-function createContentPage(url) {
+async function createContentPage(url) {
     let contentDiv = document.getElementById('content-div');
     clearElement(contentDiv);
-    makeAjaxCall(url, 'GET', null, null, function (data) {
+    await fetch(url).then(resp => resp.text()).then(data => {
+        console.log(data);
         let p = document.createElement("p");
         p.innerText = data;
         contentDiv.appendChild(p);
-    })
+    });
 }
 
 function clearElement(element) {
@@ -39,38 +40,5 @@ function clearElement(element) {
         element.removeChild(element.firstChild);
     }
 
-}
-
-
-function makeAjaxCall(url, method, data, datatype, callback) {
-
-    var request = new XMLHttpRequest();
-    request.open(method, url, false);
-    request.setRequestHeader('Content-type', datatype);
-    request.onreadystatechange = function () {
-        if (request.readyState === 4) {
-            if (request.readyState === 204) {
-                console.log("request success");
-                callback();
-            }
-            if (request.readyState === 200) {
-                var response = request.responseText;
-                callback(response);
-            } else {
-                console.log(request.status + " :request failed");
-
-            }
-        } else {
-            console.log(request.status + " :request processing...")
-        }
-
-    }
-    request.send(data);
-    if(datatype === 'application/json'){
-        callback(JSON.parse(request.responseText));
-    } else {
-        callback(request.responseText);
-    }
-    console.log(" request success");
 }
 
