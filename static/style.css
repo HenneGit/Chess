@@ -6,10 +6,23 @@ body {
   font-size: 12px;
 }
 
-div{
-    color: cadetblue;
+#nav-bar{
+    margin-left: 100px;
 }
 
+.nav-bar-entry{
+    margin: 5px;
+}
+
+.nav-bar-entry:hover{
+    font-family:  raleway-bold;
+}
+
+#mirror{
+    font-size: 50px;
+}
+
+/*mastermind*/
 .fade-in{
     background-color: black;
     transition: 1s ease;

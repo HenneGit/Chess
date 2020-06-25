@@ -1,5 +1,6 @@
-document.addEventListener('DOMContentLoaded', init);
 
+
+init();
 
 async function init() {
     await fetch('/getMenu').then(resp => resp.json()).then(data => addSideBar(data));
@@ -12,10 +13,11 @@ function addSideBar(data){
 
         let div = document.createElement("div");
         let p = document.createElement("div");
-        p.id = entry[0] + "entryId";
+        p.classList.add('nav-bar-entry');
         p.textContent = entry[0];
         p.addEventListener('click', function () {
             createContentPage(entry[1]);
+            setMirror(entry[0]);
         });
 
         div.appendChild(p);
@@ -40,5 +42,10 @@ function clearElement(element) {
         element.removeChild(element.firstChild);
     }
 
+}
+
+function setMirror(text) {
+    let mirror = document.getElementById('mirror');
+    mirror.innerText = text;
 }
 

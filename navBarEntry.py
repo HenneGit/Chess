@@ -5,3 +5,4 @@ class NavBarEntry:
         self._name = name
         self._route = route
 
+

@@ -32,9 +32,10 @@ def start():
 
 @app.route('/getMenu', methods=['GET'])
 def get_menu_bar():
-    about_me = NavBarEntry('About_Me', 'aboutMe')
-    some_content = ['Some_Content', 'someContent']
-    list = (about_me, some_content)
+    about = NavBarEntry('About_Me', 'aboutMe')
+    cv = NavBarEntry('Curriculum Vitae', 'someContent')
+    mastermind = NavBarEntry('Mastermind', 'masterMind')
+    entry_list = (about, cv, mastermind)
 
     class ComplexEncoder(json.JSONEncoder):
         def default(self, obj):
@@ -43,7 +44,7 @@ def get_menu_bar():
 
             return json.JSONEncoder.default(self, obj)
 
-    return jsonify(json.dumps(list, cls=ComplexEncoder))
+    return jsonify(json.dumps(entry_list, cls=ComplexEncoder))
 
 
 @app.route('/getLetters', methods=['GET'])
