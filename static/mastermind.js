@@ -3,6 +3,8 @@ const colorsMap = {'red': '#F24607', 'green': '#49D907', 'blue': '#0597F2', 'yel
 const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
 let i = 0;
 
+init();
+
 function init() {
     const code = setCode();
     console.log(code);

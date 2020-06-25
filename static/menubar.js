@@ -1,12 +1,10 @@
-
-
 init();
 
 async function init() {
     await fetch('/getMenu').then(resp => resp.json()).then(data => addSideBar(data));
 }
 
-function addSideBar(data){
+function addSideBar(data) {
     let dataParsed = JSON.parse(data);
     let mainDiv = document.getElementById('nav-bar');
     for (let entry of dataParsed) {
@@ -26,19 +24,33 @@ function addSideBar(data){
     }
 }
 
+
+function lazyLoadMain(url) {
+    let body = document.querySelector('body');
+    let script = document.createElement('script');
+    script.src = url;
+    body.appendChild(script);
+}
+
+
 async function createContentPage(url) {
     let contentDiv = document.getElementById('content-div');
     clearElement(contentDiv);
-    await fetch(url).then(resp => resp.text()).then(data => {
-        console.log(data);
-        let p = document.createElement("p");
-        p.innerText = data;
-        contentDiv.appendChild(p);
-    });
+    if (url.includes('.js')) {
+        lazyLoadMain(url);
+    } else {
+        await fetch(url).then(resp => resp.text()).then(data => {
+
+            let p = document.createElement("p");
+            p.innerText = data;
+            contentDiv.appendChild(p);
+
+        });
+    }
 }
 
 function clearElement(element) {
-    while(element.firstChild){
+    while (element.firstChild) {
         element.removeChild(element.firstChild);
     }
 

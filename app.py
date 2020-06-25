@@ -34,7 +34,7 @@ def start():
 def get_menu_bar():
     about = NavBarEntry('About_Me', 'aboutMe')
     cv = NavBarEntry('Curriculum Vitae', 'someContent')
-    mastermind = NavBarEntry('Mastermind', 'masterMind')
+    mastermind = NavBarEntry('Mastermind', '/static/mastermind.js')
     entry_list = (about, cv, mastermind)
 
     class ComplexEncoder(json.JSONEncoder):

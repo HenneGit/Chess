@@ -94,32 +94,11 @@ function colorLetters(data) {
 
 async function moveDown() {
     const rows = getShuffledRows();
-
     for (let row of rows) {
         await startAnimationAndResolve(row);
     }
 }
 
-async function fetchJson(url) {
-    let header = {
-        method: 'GET',
-        headers: {
-            'Accept': 'application/json, text/plain',
-            'Content-Type': 'application/json'
-        }
-    };
-
-
-    let request = new Request(url, header);
-
-    fetch(url).then(function (resp) {
-        console.log(resp);
-        return resp.json()
-    }).then(function (data) {
-        console.log(data);
-    })
-
-}
 
 /**
  * waits 10 * row length ms and starts the animation for given rows.
@@ -137,7 +116,7 @@ async function startAnimationAndResolve(row) {
 }
 
 /**
- * sets the class to all elements in row with an offset of 10ms
+ * sets the transition class to all elements in row with an offset of 10ms
  * @param row
  */
 function playAnimation(row) {
@@ -191,7 +170,7 @@ async function complete() {
     //add event to tooltip
     pix.addEventListener('click', function () {
         moveDown();
-        //lazyLoadMain();
+        setTimeout(lazyLoadMain, 2000);
     });
     const timeOut = setTimeout(() => {
         pix.classList.add('blink');

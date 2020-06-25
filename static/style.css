@@ -8,9 +8,13 @@ body {
 
 #nav-bar{
     margin-left: 100px;
+    transition-property: opacity;
+    transition: 1s ease;
+    opacity: 1;
 }
 
 .nav-bar-entry{
+
     margin: 5px;
 }
 
