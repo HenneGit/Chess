@@ -1,0 +1,45 @@
+#main-div {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-auto-rows: minmax(30vh, auto);
+
+}
+
+
+#content-div {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: minmax(1fr, 1fr);
+    grid-column-gap: 10px;
+
+}
+
+
+#table > div {
+    padding: 0.5em;
+}
+
+
+.letter-box {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-auto-rows: minmax(1fr, 1fr);
+}
+
+.pixel {
+    margin: 0.5px;
+    opacity: 0;
+    transition: all 1s ease;
+
+}
+
+.fade {
+    background-color: lightgreen;
+    opacity: 1;
+}
+
+.move {
+    transform: translateY(400px);
+    opacity: 0;
+}
+

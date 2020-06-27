@@ -12,8 +12,8 @@ async function init() {
     await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
 
     console.log("does it wait?");
-    let display = document.getElementById('display');
-    const pixels = display.querySelectorAll('.pixel-active');
+    let contentDiv = document.getElementById('content-div');
+    const pixels = contentDiv.querySelectorAll('.pixel-active');
 
     let array = [];
     let i = 0;
@@ -43,10 +43,7 @@ async function init() {
 function buildLetterGrid(word) {
 
     let letters = 0;
-    let wrapper = document.getElementById('wrapper');
-    let display = document.createElement('div');
-    addEmptyDivs(wrapper);
-    display.id = 'display';
+    let contentDiv = document.getElementById('content-div');
     while (letters < word.length) {
         let rows = 0;
         let letterDiv = document.createElement('div');
@@ -63,23 +60,9 @@ function buildLetterGrid(word) {
             }
             rows++;
         }
-        display.appendChild(letterDiv);
+        contentDiv.appendChild(letterDiv);
         letters++;
     }
-    wrapper.appendChild(display);
-    addEmptyDivs(wrapper);
-}
-
-function addEmptyDivs(wrapper) {
-    for (let i = 0; i < 4; i++) {
-        wrapper.appendChild(getEmptyDiv());
-    }
-}
-
-
-function getEmptyDiv() {
-    return document.createElement('div');
-
 }
 
 function colorLetters(data) {
@@ -156,13 +139,10 @@ function shuffle(array) {
 }
 
 /**
- * creates tooltip and appends it to a random pixel. Sets timeout for pixel to add blinking class.
+ * Pics random pixel. Sets timeout for pixel to add blinking class.
  */
 async function complete() {
     let pixels = document.querySelectorAll('.pixel-active');
-    let toolTip = document.createElement('span');
-    toolTip.classList.add('tooltip');
-    toolTip.innerText = "Enter";
 
     //pick random pixel and append tooltip.
     let x = Math.floor(Math.random() * Math.floor(pixels.length));
@@ -181,18 +161,17 @@ async function complete() {
 
     pix.style.backgroundColor = 'red';
     pix.classList.add('toolTipDiv');
-    pix.appendChild(toolTip);
 
 }
 
 function lazyLoadMain() {
     let body = document.querySelector('body');
     let script = document.createElement('script');
-    script.src = '/static/menubar.js';
+    script.src = '/static/menubar/menubar.js';
     body.appendChild(script);
     let link = document.querySelector('link');
-    link.href = '/static/style.css'
-    clearElement(document.getElementById('wrapper'));
+    link.href = '/static/mainpage.css'
+    clearElement(document.getElementById('content-div'));
 }
 
 

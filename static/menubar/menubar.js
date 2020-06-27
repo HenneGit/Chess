@@ -53,7 +53,7 @@
             link.id = 'lazy-css';
             link.rel = 'stylesheet';
             link.type = 'text/css';
-            link.href = '/static/' + file;
+            link.href = file;
             head.appendChild(link);
         } else {
             link.href = file;

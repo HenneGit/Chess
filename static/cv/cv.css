@@ -1,0 +1,30 @@
+#content-div{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-column-gap: 5px;
+    grid-row-gap: 5px;
+
+}
+
+#content-div > div {
+    background-color: palegreen;
+
+}
+
+
+#content-div > div:nth-child(odd) {
+    background-color:honeydew ;
+}
+
+
+h2 {
+    font-size: 2em;
+    font-family: raleway-bold;
+}
+h1 {
+    font-size: 1em;
+}
+
+.cv-div{
+    padding: 10px;
+}

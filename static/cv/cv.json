@@ -1,0 +1,31 @@
+{
+  "School": {
+    "h1": "Gesamntschule Kierspe Abitur 2004",
+    "p": "Abschluss 2.1"
+  },
+  "University": {
+    "h1": "2003-2004",
+    "p1": "Uni Bayreuth",
+    "h2": "2005-2013",
+    "p2": "Uni Marburg"
+  },
+  "Work": {
+    "h1": "2013-2016",
+    "p1": "Infernum",
+    "h2": "2018-2021",
+    "p2": "Proventis"
+  },
+  "Skills": {
+    "h1": "Sauerbraten, Käsespätzle, 5 Bälle Jonglieren"
+  },
+  "Coding": {
+    "h1": "Java",
+    "p1": "4",
+    "h2": "JavaScript",
+    "p2": "3",
+    "h3": "Python",
+    "p3": "2",
+    "h4": "C++",
+    "p4": "2"
+  }
+}

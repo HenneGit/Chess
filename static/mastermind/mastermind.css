@@ -6,6 +6,10 @@
     transform: translateY(-40px);
 
 }
+#wrapper {
+    display: grid;
+    grid-auto-columns: 1fr 1fr 1fr 1fr 2fr;
+}
 
 .circle{
     height: 50px;

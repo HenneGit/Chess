@@ -20,11 +20,6 @@ def about_me():
     return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. "
 
 
-@app.route('/home')
-def home():
-    return render_template("main.html")
-
-
 @app.route('/start')
 def start():
     return render_template("landingPage.html")
@@ -33,10 +28,9 @@ def start():
 @app.route('/getMenu', methods=['GET'])
 def get_menu_bar():
     about = NavBarEntry('About_Me', 'aboutMe', None)
-    cv = NavBarEntry('Curriculum Vitae', 'someContent', 'cv.ss')
-    mastermind = NavBarEntry('Mastermind', '/static/mastermind.js', 'mastermind.css')
-    neu = NavBarEntry('Neu', '/static/mastermind.js', None)
-    entry_list = (about, cv, mastermind, neu)
+    cv = NavBarEntry('Curriculum Vitae', '/static/cv/cv.js', '/static/cv/cv.css')
+    mastermind = NavBarEntry('Mastermind', '/static/mastermind/mastermind.js', '/static/mastermind/mastermind.css')
+    entry_list = (about, cv, mastermind)
 
     class ComplexEncoder(json.JSONEncoder):
         def default(self, obj):
