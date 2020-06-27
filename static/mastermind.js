@@ -1,6 +1,7 @@
-document.addEventListener('DOMContentLoaded', init);
+(function(){
 const colorsMap = {'red': '#F24607', 'green': '#49D907', 'blue': '#0597F2', 'yellow': '#EAF205', 'purple': '#970FF2'};
 const colors = ['red', 'green', 'blue', 'yellow', 'purple'];
+
 let i = 0;
 
 init();
@@ -130,3 +131,4 @@ async function resetAnimation() {
 
 
 }
+}());

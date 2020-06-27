@@ -26,53 +26,12 @@ body {
     font-size: 50px;
 }
 
-/*mastermind*/
-.fade-in{
-    background-color: black;
-    transition: 1s ease;
-    transition-property: opacity;
-    transform: translateY(-40px);
-
-}
-
-.circle{
-    height: 50px;
-    width: 50px;
-    border-radius: 50%;
-}
-
-.correct-position{
-    height: 10px;
-    width: 10px;
-    border-radius: 50%;
-    background-color: black;
-}
-.correct-color{
-    height: 10px;
-    width: 10px;
-    border-radius: 50%;
-    border: black;
-    background-color: blue;
-}
-#content-div{
-    justify-items: center;
-}
-
 .wrapper{
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
     grid-column-gap: 2px;
     justify-items: center;
 
-}
-
-.send-code{
-    border: 1px dot-dash black;
-}
-
-.hints{
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
 }
 
 #main-div{

@@ -32,15 +32,16 @@ def start():
 
 @app.route('/getMenu', methods=['GET'])
 def get_menu_bar():
-    about = NavBarEntry('About_Me', 'aboutMe')
-    cv = NavBarEntry('Curriculum Vitae', 'someContent')
-    mastermind = NavBarEntry('Mastermind', '/static/mastermind.js')
-    entry_list = (about, cv, mastermind)
+    about = NavBarEntry('About_Me', 'aboutMe', None)
+    cv = NavBarEntry('Curriculum Vitae', 'someContent', 'cv.ss')
+    mastermind = NavBarEntry('Mastermind', '/static/mastermind.js', 'mastermind.css')
+    neu = NavBarEntry('Neu', '/static/mastermind.js', None)
+    entry_list = (about, cv, mastermind, neu)
 
     class ComplexEncoder(json.JSONEncoder):
         def default(self, obj):
             if isinstance(obj, NavBarEntry):
-                return [obj._name, obj._route]
+                return [obj._name, obj._route, obj._css]
 
             return json.JSONEncoder.default(self, obj)
 

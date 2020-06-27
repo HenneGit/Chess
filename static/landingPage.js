@@ -1,5 +1,7 @@
-document.addEventListener('DOMContentLoaded', init);
+(function () {
+'use strict';
 
+init();
 /**
  * inits the page, collects active pixels and sets animation for appearing.
  * @returns {Promise<void>}
@@ -219,3 +221,4 @@ function getShuffledRows() {
     return rowIds;
 }
 
+}());
