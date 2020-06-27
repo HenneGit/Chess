@@ -1,20 +1,15 @@
-/*mastermind*/
-.fade-in{
-    background-color: black;
-    transition: 1s ease;
-    transition-property: opacity;
-    transform: translateY(-40px);
-
-}
-#wrapper {
+.mm-row {
     display: grid;
-    grid-auto-columns: 1fr 1fr 1fr 1fr 2fr;
+    grid-template-columns: 1fr 1fr 1fr 1fr 7fr;
+    justify-items: left;
 }
 
 .circle{
     height: 50px;
     width: 50px;
     border-radius: 50%;
+    background-color: black;
+
 }
 
 .correct-position{
@@ -30,16 +25,15 @@
     border: black;
     background-color: blue;
 }
-#content-div{
-    justify-items: center;
-}
 
 .send-code{
-    border: 1px dot-dash black;
+    border: 2px dotted black;
 }
 
 .hints{
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    justify-items: left;
+
 }
 

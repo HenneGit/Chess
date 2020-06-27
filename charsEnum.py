@@ -10,3 +10,4 @@ class CharEnum:
     L = ['r0c0', 'r1c0', 'r2c0', 'r3c0', 'r4c0', 'r5c0', 'r6c1', 'r6c2', 'r6c3']
     O = ['r2c1', 'r2c2', 'r2c3', 'r3c0', 'r3c4', 'r4c0', 'r4c4', 'r5c0',
          'r5c4', 'r6c1', 'r6c2', 'r6c3']
+    R = ['r3c1', 'r3c2', 'r3c3', 'r4c0', 'r5c0', 'r5c0']

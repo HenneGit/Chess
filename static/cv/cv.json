@@ -7,7 +7,7 @@
     "h1": "2003-2004",
     "p1": "Uni Bayreuth",
     "h2": "2005-2013",
-    "p2": "Uni Marburg"
+    "p2": "Uni Marburg - Medienwissenschaft"
   },
   "Work": {
     "h1": "2013-2016",
@@ -27,5 +27,13 @@
     "p3": "2",
     "h4": "C++",
     "p4": "2"
+  },
+  "Praktika": {
+    "h1": "2013",
+    "p1": "Infernum Praktikant",
+    "h2": "2008",
+    "p2": "Werbefilm",
+    "h3": "2003",
+    "p3": "Lüdenscheider Nachrichten"
   }
 }
