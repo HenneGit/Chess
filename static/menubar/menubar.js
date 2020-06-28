@@ -6,8 +6,7 @@
     async function init() {
         await fetch('/getMenu').then(resp => resp.json()).then(data => addSideBar(data));
         let mirror = document.getElementById('mirror');
-        buildLetterGrid('hello', mirror);
-        await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
+        await buildLetterGrid('start', mirror);
     }
 
     function addSideBar(data) {
@@ -21,7 +20,7 @@
             p.textContent = entry[0];
             p.addEventListener('click', function () {
                 createContentPage(entry[1], entry[2]);
-                setMirror(entry[0]);
+                setMirror(entry[0].toLowerCase());
             });
 
             div.appendChild(p);
@@ -30,7 +29,7 @@
         }
     }
 
-    function buildLetterGrid(word, container) {
+    async function buildLetterGrid(word, container) {
 
         let letters = 0;
         while (letters < word.length) {
@@ -52,9 +51,23 @@
             container.appendChild(letterDiv);
             letters++;
         }
+        await getLetters(word);
+    }
+    async function getLetters(word) {
+             await fetch("/getLetters",
+            {
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                method: "POST",
+                body: JSON.stringify(word)
+            }).then(resp => resp.json()).then(json => colorLetters(json));
+
+
     }
 
-      function colorLetters(data) {
+    function colorLetters(data) {
         let l = 0;
         for (let letter of data) {
             for (let id of letter) {
@@ -64,7 +77,6 @@
             l++;
         }
     }
-
 
 
     function lazyLoadScript(url) {
@@ -82,7 +94,7 @@
     }
 
     function mountCss(file) {
-        if (file === null){
+        if (file === null) {
             return;
         }
         let link = document.getElementById('lazy-css');
@@ -149,7 +161,8 @@
 
     function setMirror(text) {
         let mirror = document.getElementById('mirror');
-        mirror.innerText = text;
+        clearElement(mirror);
+        buildLetterGrid(text, mirror);
     }
 
 }());

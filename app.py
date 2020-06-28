@@ -1,6 +1,6 @@
 from flask import Flask, render_template, jsonify, request, json, session
 from navBarEntry import NavBarEntry
-from charsEnum import CharEnum
+from charsEnum import CharEnum, get_array_from_letter
 from flask_cors import CORS, cross_origin
 from masterMind import Code, Colors
 from random import randint
@@ -8,11 +8,6 @@ from random import randint
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 CORS(app)
-
-
-@app.route('/someContent', methods=['GET'])
-def some_content():
-    return "Some Content"
 
 
 @app.route('/aboutMe', methods=['GET'])
@@ -28,7 +23,7 @@ def start():
 @app.route('/getMenu', methods=['GET'])
 def get_menu_bar():
     about = NavBarEntry('About_Me', 'aboutMe', None)
-    cv = NavBarEntry('Curriculum Vitae', '/static/cv/cv.js', '/static/cv/cv.css')
+    cv = NavBarEntry('Curriculum_Vitae', '/static/cv/cv.js', '/static/cv/cv.css')
     mastermind = NavBarEntry('Mastermind', '/static/mastermind/mastermind.js', '/static/mastermind/mastermind.css')
     video = NavBarEntry('Video', '/static/video/video.js', '/static/video/video.css')
     entry_list = (about, cv, mastermind, video)
@@ -43,10 +38,13 @@ def get_menu_bar():
     return jsonify(json.dumps(entry_list, cls=ComplexEncoder))
 
 
-@app.route('/getLetters', methods=['GET'])
+@app.route('/getLetters', methods=['GET', 'POST'])
 def get_letters():
-    word = [CharEnum.H, CharEnum.E, CharEnum.L, CharEnum.L, CharEnum.O]
-    return jsonify(word)
+    word = request.json
+    chars = list()
+    for char in word:
+        chars.append(get_array_from_letter(char))
+    return jsonify(chars)
 
 
 @app.route('/compareCodes', methods=['GET', 'POST'])
