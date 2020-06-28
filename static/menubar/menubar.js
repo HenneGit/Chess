@@ -5,6 +5,9 @@
 
     async function init() {
         await fetch('/getMenu').then(resp => resp.json()).then(data => addSideBar(data));
+        let mirror = document.getElementById('mirror');
+        buildLetterGrid('hello', mirror);
+        await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
     }
 
     function addSideBar(data) {
@@ -26,6 +29,42 @@
 
         }
     }
+
+    function buildLetterGrid(word, container) {
+
+        let letters = 0;
+        while (letters < word.length) {
+            let rows = 0;
+            let letterDiv = document.createElement('div');
+            letterDiv.id = 'l' + letters;
+            letterDiv.classList.add('letter-box');
+            while (rows < 7) {
+                let cells = 0;
+                while (cells < 5) {
+                    let cell = document.createElement('div');
+                    cell.id = 'l' + letters + 'r' + rows + 'c' + cells;
+                    cell.classList.add('pixel');
+                    letterDiv.appendChild(cell);
+                    cells++;
+                }
+                rows++;
+            }
+            container.appendChild(letterDiv);
+            letters++;
+        }
+    }
+
+      function colorLetters(data) {
+        let l = 0;
+        for (let letter of data) {
+            for (let id of letter) {
+                let td = document.getElementById('l' + l + id);
+                td.classList.add('pixel-active');
+            }
+            l++;
+        }
+    }
+
 
 
     function lazyLoadScript(url) {

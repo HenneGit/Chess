@@ -30,7 +30,8 @@ def get_menu_bar():
     about = NavBarEntry('About_Me', 'aboutMe', None)
     cv = NavBarEntry('Curriculum Vitae', '/static/cv/cv.js', '/static/cv/cv.css')
     mastermind = NavBarEntry('Mastermind', '/static/mastermind/mastermind.js', '/static/mastermind/mastermind.css')
-    entry_list = (about, cv, mastermind)
+    video = NavBarEntry('Video', '/static/video/video.js', '/static/video/video.css')
+    entry_list = (about, cv, mastermind, video)
 
     class ComplexEncoder(json.JSONEncoder):
         def default(self, obj):

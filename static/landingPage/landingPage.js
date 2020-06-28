@@ -8,12 +8,12 @@
      * @returns {Promise<void>}
      */
     async function init() {
-        buildLetterGrid("Hello");
+        let contentDiv = document.getElementById('content-div');
+
+        buildLetterGrid("Hello", contentDiv);
 
         await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
-
         console.log("does it wait?");
-        let contentDiv = document.getElementById('content-div');
         const pixels = contentDiv.querySelectorAll('.pixel-active');
 
         let array = [];
@@ -41,10 +41,9 @@
      * sets up the display, adds ids to pixels.
      * @param word
      */
-    function buildLetterGrid(word) {
+    function buildLetterGrid(word, container) {
 
         let letters = 0;
-        let contentDiv = document.getElementById('content-div');
         while (letters < word.length) {
             let rows = 0;
             let letterDiv = document.createElement('div');
@@ -55,13 +54,13 @@
                 while (cells < 5) {
                     let cell = document.createElement('div');
                     cell.id = 'l' + letters + 'r' + rows + 'c' + cells;
-                    cell.classList.add('pixel')
+                    cell.classList.add('pixel');
                     letterDiv.appendChild(cell);
                     cells++;
                 }
                 rows++;
             }
-            contentDiv.appendChild(letterDiv);
+            container.appendChild(letterDiv);
             letters++;
         }
     }
