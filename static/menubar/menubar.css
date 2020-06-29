@@ -8,10 +8,12 @@
     height: 10px;
     width: 10px;
     background-color: goldenrod;
-    opacity: 0.3;
     margin: 0.5px;
 }
-
+.pixel-fade{
+    transition: 1ms ease;
+    transform: rotateZ(360deg);
+}
 #nav-bar{
     font-size: 2em;
 }

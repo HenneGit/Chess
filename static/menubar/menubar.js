@@ -39,10 +39,25 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
 
     }
 
-    function setMirror(text) {
+    async function setMirror(text) {
         let mirror = document.getElementById('mirror');
         clearElement(mirror);
-        let letterGrid = buildLetterGrid(text, mirror);
+        await buildLetterGrid(text, mirror);
+        animateLetters();
     }
+
+    function animateLetters() {
+        let pixels = document.querySelectorAll('.pixel-active');
+        let i = 0;
+        let interval = setInterval(function () {
+            let pix = Array.from(pixels)[i];
+            pix.classList.add("pixel-fade");
+            i++;
+            if (i === pixels.length){
+                clearInterval(interval)
+            }
+        },1)
+    }
+
 
 }());

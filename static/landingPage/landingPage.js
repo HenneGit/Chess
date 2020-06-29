@@ -26,8 +26,8 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
 
         let timer = setInterval(function () {
 
-            const td = document.getElementById(array[i]);
-            td.classList.add('fade');
+            const pix = document.getElementById(array[i]);
+            pix.classList.add('fade');
             i++;
             if (i === pixels.length) {
                 clearInterval(timer);
