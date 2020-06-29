@@ -10,11 +10,6 @@ app.config['SECRET_KEY'] = 'secret_key'
 CORS(app)
 
 
-@app.route('/aboutMe', methods=['GET'])
-def about_me():
-    return "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. "
-
-
 @app.route('/start')
 def start():
     return render_template("landingPage.html")
@@ -22,7 +17,7 @@ def start():
 
 @app.route('/getMenu', methods=['GET'])
 def get_menu_bar():
-    about = NavBarEntry('About_Me', 'aboutMe', None)
+    about = NavBarEntry('About_Me', '/static/aboutMe/aboutMe.js', None)
     cv = NavBarEntry('Curriculum_Vitae', '/static/cv/cv.js', '/static/cv/cv.css')
     mastermind = NavBarEntry('Mastermind', '/static/mastermind/mastermind.js', '/static/mastermind/mastermind.css')
     video = NavBarEntry('Video', '/static/video/video.js', '/static/video/video.css')

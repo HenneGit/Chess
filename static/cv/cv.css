@@ -8,12 +8,14 @@
 
 #content-div > div {
     background-color: palegreen;
+    opacity: 0.1;
 
 }
 
 
 #content-div > div:nth-child(odd) {
-    background-color:honeydew ;
+    background-color:yellow ;
+    opacity: 0.1;
 }
 
 

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="/static/mainpage.css">
+    <link rel="stylesheet" href="/static/landingPage/landingPage.css" id="lazy-loaded-css">
+    <link rel="stylesheet" href="/static/mainPage.css">
     <meta charset="UTF-8">
     <title>My Homepage</title>
 </head>
@@ -11,6 +12,7 @@
     <div id="nav-bar"></div>
     <div id="content-div"></div>
 
-    <script type="text/javascript"  src ="{{ url_for('static', filename='/menubar/menubar.js')}}"></script>
 </div>
+<script type="module"  src ="{{ url_for('static', filename='main.js')}}" ></script>
+<script type="module"  src ="{{ url_for('static', filename='landingPage/landingPage.js')}}" id="lazy-loaded-js"></script>
 </body></html>

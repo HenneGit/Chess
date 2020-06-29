@@ -1,0 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Raleway:ital,wght@0,100;0,200;0,400;1,100;1,400&display=swap');
+
+
+body {
+    font-family: raleway, sans-serif;
+    font-size: 12px;
+}
+
+#main-div {
+    display: grid;
+    grid-template-columns: 2fr 5fr;
+    margin: 10vh;
+
+}
+
+#mirror {
+    display: flex;
+    justify-content: end;
+    grid-column: span 7;
+    font-size: 5em;
+    grid-auto-rows: minmax(20vh, auto);
+}
+
+

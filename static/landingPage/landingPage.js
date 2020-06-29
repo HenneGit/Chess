@@ -1,4 +1,7 @@
+import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/main.js";
+
 (function () {
+
     'use strict';
 
     init();
@@ -10,10 +13,8 @@
     async function init() {
         let contentDiv = document.getElementById('content-div');
 
-        buildLetterGrid("Hello", contentDiv);
+        await buildLetterGrid("hello", contentDiv);
 
-        await fetch('/getLetters').then(res => res.json()).then(data => colorLetters(data));
-        console.log("does it wait?");
         const pixels = contentDiv.querySelectorAll('.pixel-active');
 
         let array = [];
@@ -34,46 +35,6 @@
             }
         }, 10);
 
-    }
-
-
-    /**
-     * sets up the display, adds ids to pixels.
-     * @param word
-     */
-    function buildLetterGrid(word, container) {
-
-        let letters = 0;
-        while (letters < word.length) {
-            let rows = 0;
-            let letterDiv = document.createElement('div');
-            letterDiv.id = 'l' + letters;
-            letterDiv.classList.add('letter-box');
-            while (rows < 7) {
-                let cells = 0;
-                while (cells < 5) {
-                    let cell = document.createElement('div');
-                    cell.id = 'l' + letters + 'r' + rows + 'c' + cells;
-                    cell.classList.add('pixel');
-                    letterDiv.appendChild(cell);
-                    cells++;
-                }
-                rows++;
-            }
-            container.appendChild(letterDiv);
-            letters++;
-        }
-    }
-
-    function colorLetters(data) {
-        let l = 0;
-        for (let letter of data) {
-            for (let id of letter) {
-                let td = document.getElementById('l' + l + id);
-                td.classList.add('pixel-active');
-            }
-            l++;
-        }
     }
 
 
@@ -160,25 +121,22 @@
 
         pix.style.backgroundColor = 'red';
         pix.classList.add('toolTipDiv');
-
     }
 
     function lazyLoadMain() {
-        let body = document.querySelector('body');
-        let script = document.createElement('script');
-        script.src = '/static/menubar/menubar.js';
-        body.appendChild(script);
-        let link = document.querySelector('link');
-        link.href = '/static/mainpage.css'
         clearElement(document.getElementById('content-div'));
+        let script = document.createElement('script');
+        script.type = "module";
+        script.src = "/static/menubar/menubar.js";
+        document.querySelector('body').appendChild(script);
+        toggleCss("");
+        let head = document.querySelector('head');
+        let link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/static/menubar/menubar.css';
+        head.appendChild(link);
     }
 
-
-    function clearElement(element) {
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
-        }
-    }
 
     /**
      * gets all active pixels of a row and shuffles them. Returns an array with all rows shuffled.
@@ -186,7 +144,7 @@
      */
     function getShuffledRows() {
         let elements = document.querySelectorAll('.pixel-active');
-        let ids = Array.from(eleements).map((element) => element.id);
+        let ids = Array.from(elements).map((element) => element.id);
 
         let rowNumbers = ['r6', 'r5', 'r4', 'r3', 'r2', 'r1', 'r0'];
         let rowIds = [];
