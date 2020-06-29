@@ -38,11 +38,11 @@ body {
 
 .letter-box {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(7,1fr);
-
-
+    margin: 2px;
 }
+
+
 
 .pixel-active{
     height: 10px;

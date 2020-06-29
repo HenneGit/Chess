@@ -71,11 +71,15 @@
         let l = 0;
         for (let letter of data) {
             for (let id of letter) {
-                let td = document.getElementById('l' + l + id);
-                td.classList.add('pixel-active');
+                let pixel = document.getElementById('l' + l + id);
+                if (pixel === null){
+                    console.log(id);
+                }
+                pixel.classList.add('pixel-active');
             }
             l++;
         }
+        cleanLetters();
     }
 
 
@@ -157,6 +161,30 @@
             element.removeChild(element.firstChild);
         }
 
+    }
+
+    function cleanLetters(){
+        let letters = document.querySelectorAll('.letter-box');
+        let columnNo = ['c0', 'c1', 'c2', 'c3', 'c4'];
+
+        for (let letter of letters){
+            let inactive  = Array.from(letter.children).filter(pixel => {
+                return !pixel.classList.contains('pixel-active');
+            });
+
+            let pixelToRemove = [];
+            columnNo.forEach(no => pixelToRemove.push(inactive.filter(pixel => {
+                return pixel.id.includes(no);
+            })));
+            let columnCount = 5;
+            for (let column of pixelToRemove){
+                if (column.length === 7){
+                   column.forEach(pixel => letter.removeChild(pixel));
+                   columnCount--;
+                }
+            }
+            letter.style.gridTemplateColumns = "repeat(" + columnCount + ", 1fr)";
+        }
     }
 
     function setMirror(text) {

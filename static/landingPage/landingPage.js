@@ -186,7 +186,7 @@
      */
     function getShuffledRows() {
         let elements = document.querySelectorAll('.pixel-active');
-        let ids = Array.from(elements).map((element) => element.id);
+        let ids = Array.from(eleements).map((element) => element.id);
 
         let rowNumbers = ['r6', 'r5', 'r4', 'r3', 'r2', 'r1', 'r0'];
         let rowIds = [];
