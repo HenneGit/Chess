@@ -119,8 +119,7 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
             pix.classList.add('blink');
         }, 1);
 
-        pix.style.backgroundColor = 'red';
-        pix.classList.add('toolTipDiv');
+        pix.classList.add('enter');
     }
 
     function lazyLoadMain() {

@@ -15,7 +15,6 @@
 
     function init() {
         const code = setCode();
-        console.log(code);
         setCirclePanel(1);
     }
 
@@ -55,7 +54,7 @@
 
 
     async function setCode() {
-        await fetch('/getCode').then(resp => resp.json()).then(json => console.log(json));
+        await fetch('/getCode');
     }
 
     async function sendCode() {

@@ -7,12 +7,20 @@
 .pixel-active{
     height: 10px;
     width: 10px;
-    background-color: goldenrod;
+    background-color: greenyellow;
     margin: 0.5px;
+    transition-property: transform;
+    transition-duration: 2s;
+    opacity: 0;
 }
-.pixel-fade{
-    transition: 1ms ease;
-    transform: rotateZ(360deg);
+.pixel-fade {
+    transform: rotateZ(.5turn);
+    opacity: 1;
+}
+
+.pixel-active:hover{
+    transform: rotateZ(180deg);
+
 }
 #nav-bar{
     font-size: 2em;
@@ -20,6 +28,7 @@
 
 .nav-bar-entry{
     margin: 5px;
+    cursor: pointer;
 }
 
 .nav-bar-entry:hover{

@@ -26,7 +26,7 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
             });
 
             div.appendChild(p);
-            mainDiv.appendChild(div)
+            mainDiv.appendChild(div);
 
         }
     }
@@ -49,14 +49,17 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
     function animateLetters() {
         let pixels = document.querySelectorAll('.pixel-active');
         let i = 0;
-        let interval = setInterval(function () {
+        //let interval = setInterval(function () {
+        while (i < pixels.length){
+
             let pix = Array.from(pixels)[i];
             pix.classList.add("pixel-fade");
             i++;
-            if (i === pixels.length){
-                clearInterval(interval)
-            }
-        },1)
+        }
+        //if (i === pixels.length) {
+        //    clearInterval(interval)
+        //}
+        //},1)
     }
 
 
