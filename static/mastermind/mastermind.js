@@ -18,6 +18,10 @@
         setCirclePanel(1);
     }
 
+    /**
+     * sets the circle panel and adds eventListeners.
+     * @param number
+     */
     function setCirclePanel(number) {
         const div = document.getElementById('content-div');
         const wrapper = document.createElement('div');
@@ -81,6 +85,10 @@
 
     }
 
+    /**
+     * returns a simple circle element.
+     * @returns {HTMLDivElement}
+     */
     function getCircleElement() {
         let circle = document.createElement('div');
         circle.classList.add('circle');

@@ -3,18 +3,37 @@
     height: 800px;
     width: 800px;
     grid-template-rows: repeat(8, 1fr);
-}
-
-.row {
-    display: grid;
     grid-template-columns: repeat(8, 1fr);
 }
+.field {
+    height: 100px;
+    width: 100px;
+}
+.empty {
+    height: 100px;
+    width: 100px;
+}
 
-.odd > div:nth-child(odd){
+.black {
     background-color: palegreen;
 }
 
-.even > div:nth-child(even){
-     background-color: palegreen;
+.white {
+     background-color: antiquewhite;
+}
 
+.piece{
+    cursor: pointer;
+}
+
+.invisible {
+    display: none;
+}
+
+.hold {
+
+}
+
+.hovered {
+    background-color: cornflowerblue;
 }

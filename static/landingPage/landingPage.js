@@ -37,7 +37,10 @@ import {buildLetterGrid, clearElement, toggleScript, toggleCss} from "/static/ma
 
     }
 
-
+    /**
+     * starts the moving down animation on shuffled rows.
+     * @returns {Promise<void>}
+     */
     async function moveDown() {
         const rows = getShuffledRows();
         for (let row of rows) {
