@@ -4,6 +4,7 @@ from charsEnum import CharEnum, get_array_from_letter
 from flask_cors import CORS, cross_origin
 from masterMind import Code, Colors
 from random import randint
+from stockfish import Stockfish
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
@@ -73,6 +74,13 @@ def set_code():
                     is_duplicate = bool(0)
         session['code'] = random_code
         return jsonify(random_code)
+
+
+@app.route('/getChess', methods=['GET', 'POST'])
+def get_chess():
+    stockfish = Stockfish("/home/henne/projects/python/website/dependencies/stockfish/Linux/stockfish_20011801_x64")
+    stockfish.set_position(request.json)
+    return jsonify(stockfish.get_best_move())
 
 
 if __name__ == '__main__':

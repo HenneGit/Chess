@@ -19,6 +19,9 @@ const positions = {
     "h1": new Piece('rook', 'white', "white-rook.svg")
 };
 
+const letters = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
+
+
 function Piece(type, color, svg) {
     this.type = type;
     this.color = color;
@@ -48,7 +51,6 @@ function newGame() {
 
     let fields = [];
 
-    let letters = ['h', 'g', 'f', 'e', 'd', 'c', 'b', 'a'];
     for (let i = 1; i < 9; i++) {
         for (let j = 0; j < 8; j++) {
             let letter = letters[j];
@@ -71,7 +73,8 @@ function newGame() {
 
 function createBoard(board) {
     let contentDiv = document.getElementById('content-div');
-
+    let boardDiv = document.createElement('div');
+    boardDiv.id = 'board-div';
     let blackOrWhite = -1;
     for (let field of board.fields) {
 
@@ -82,60 +85,102 @@ function createBoard(board) {
         domField.classList.add('field');
         if (field.piece !== null) {
             let svg = document.createElement('img');
-            svg.draggable = true;
             svg.src = field.piece.svg;
-            domField.appendChild(svg);
+            svg.classList.add("piece");
+            svg.draggable = true;
             svg.addEventListener('dragstart', dragStart);
             svg.addEventListener('dragend', dragEnd);
+            domField.appendChild(svg);
         }
         domField.addEventListener('dragover', dragOver);
         domField.addEventListener('dragleave', dragLeave);
         domField.addEventListener('dragenter', dragEnter);
         domField.addEventListener('drop', dragDrop);
 
-        contentDiv.appendChild(domField);
+        boardDiv.appendChild(domField);
         blackOrWhite = blackOrWhite * -1;
         if (field.x === 8) {
             blackOrWhite = blackOrWhite * -1;
         }
     }
+    contentDiv.appendChild(boardDiv);
+    let xAxis = document.createElement('div');
+    let yAxis = document.createElement('div');
+    xAxis.id = "x-axis";
+    yAxis.id = "y-axis";
+    appendAxis(yAxis, true);
+    appendAxis(xAxis, false);
+    contentDiv.appendChild(yAxis);
+    contentDiv.appendChild(xAxis);
+
+    setTimeout(flip, 5000);
+    move('b2', 'b3');
+}
+
+function appendAxis(axis, hasLetters) {
+    for (let i = 0; i < 8; i++) {
+        let div = document.createElement('div');
+        hasLetters ? div.innerText = i + 1 : div.innerText = letters[i];
+        axis.appendChild(div);
     }
 
-    function dragStart() {
-        this.classList = 'hold';
-        this.classList.add('dragged');
-        setTimeout(() => this.classList.add('invisible'), 0);
+}
 
+function flip() {
+    let boarDiv = document.getElementById('board-div');
+    let xAxis = document.getElementById('x-axis');
+    let yAxis = document.getElementById('y-axis');
+    let elements = [boarDiv, xAxis, yAxis];
+    for (let element of elements) {
+        for (let i = 1; i < element.childNodes.length; i++) {
+            element.insertBefore(element.childNodes[i], element.firstChild);
+        }
     }
+}
 
-    function dragEnd() {
-        this.classList.remove('invisible');
-        this.classList.remove('hold');
-        this.classList.add("field");
+function move(sourceField, targetField) {
+    let source = document.getElementById(sourceField);
+    let piece = source.querySelector('.piece');
+    let target = document.getElementById(targetField);
+    target.appendChild(piece);
+}
 
-    }
 
-    function dragOver(event) {
-        event.preventDefault();
-        this.classList.add('hovered');
+function dragStart() {
+    this.classList = 'hold';
+    this.classList.add('dragged');
+    setTimeout(() => this.classList.add('invisible'), 0);
 
-    }
+}
 
-    function dragEnter(event) {
-        event.preventDefault();
-        this.classList.add('hovered');
+function dragEnd() {
+    this.classList.remove('invisible');
+    this.classList.remove('hold');
+    this.classList.add("field");
 
-    }
+}
 
-    function dragLeave() {
-        this.classList.remove('hovered');
+function dragOver(event) {
+    event.preventDefault();
+    this.classList.add('hovered');
 
-    }
+}
 
-    function dragDrop() {
-        let draggedElement = document.querySelector('.dragged');
-        this.classList.remove('hovered');
+function dragEnter(event) {
+    event.preventDefault();
+    this.classList.add('hovered');
 
-        this.append(draggedElement);
-        draggedElement.classList.remove('dragged');
-    }
+}
+
+function dragLeave() {
+    this.classList.remove('hovered');
+
+}
+
+function dragDrop() {
+    let draggedElement = document.querySelector('.dragged');
+    this.classList.remove('hovered');
+
+    this.append(draggedElement);
+    draggedElement.classList.remove('dragged');
+}
