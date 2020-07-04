@@ -12,7 +12,10 @@
     align-items: center;
     justify-items: center;
 }
-
+img {
+    height: 90px;
+    width: 90px;
+}
 #x-axis {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -30,8 +33,11 @@
 }
 
 .field {
+    display: grid;
     height: 100px;
     width: 100px;
+    justify-items: center;
+    align-items: center;
 }
 
 .empty {
@@ -57,6 +63,10 @@
 
 .hold {
 
+}
+
+.legal {
+    background-color: aquamarine;
 }
 
 .hovered {

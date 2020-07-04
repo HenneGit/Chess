@@ -1,7 +1,7 @@
 from flask import Flask, render_template, jsonify, request, json, session
 from navBarEntry import NavBarEntry
-from charsEnum import CharEnum, get_array_from_letter
-from flask_cors import CORS, cross_origin
+from charsEnum import get_array_from_letter
+from flask_cors import CORS
 from masterMind import Code, Colors
 from random import randint
 from stockfish import Stockfish
