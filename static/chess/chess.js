@@ -56,7 +56,7 @@ function newGame() {
 
     for (let i = 1; i < 9; i++) {
         for (let j = 8; j > 0; j--) {
-            let letter = letters[j-1];
+            let letter = letters[j - 1];
             let piece = positions[letter + i] === undefined ? null : positions[letter + i];
             if (i === 2 || i === 7) {
                 let color = i === 7 ? 'black' : 'white';
@@ -83,7 +83,7 @@ function createBoard(board) {
 
         let domField = document.createElement('div');
         domField.id = field.id;
-        let classType = blackOrWhite < 0 ? 'black' : 'white';
+        let classType = blackOrWhite < 0 ? 'white' : 'black';
         domField.classList.add(classType);
         domField.classList.add('field');
         domField.setAttribute('x', field.x);
@@ -101,7 +101,7 @@ function createBoard(board) {
 
         boardDiv.appendChild(domField);
         blackOrWhite = blackOrWhite * -1;
-        if (field.x === 8) {
+        if (field.x === 1) {
             blackOrWhite = blackOrWhite * -1;
         }
     }
@@ -154,7 +154,19 @@ function dragStart() {
     this.classList.add('dragged');
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
-    getLegalMoves(getField(fieldId)).forEach(field => setUpLegelFields(field));
+    let diagonal = getHorizontal(getField(fieldId), 2);
+    for (let field of diagonal) {
+        if (field !== undefined) {
+            setUpLegelFields(field);
+        }
+    }
+
+    let vertical = getVertical(getField(fieldId), 2);
+    for (let field of vertical) {
+        if (field !== undefined) {
+            setUpLegelFields(field);
+        }
+    }
 
 }
 
@@ -284,8 +296,116 @@ function getLegalMoves(currentField) {
 
 }
 
-function getPawnMoves(currentField) {
+function getDiagonal(field, depth) {
+    let fields = [];
+    let downLeftContainsPiece = false;
+    let downRightContainsPiece = false;
+    let upLeftContainsPiece = false;
+    let upRightContainsPiece = false;
 
+    for (let i = 1; i <= depth; i++) {
+        if (!downLeftContainsPiece) {
+
+            let downLeft = getFieldByXY(field.x - i, field.y - i);
+            if (downLeft === undefined || downLeft.containsPiece()) {
+                downLeftContainsPiece = true;
+            } else {
+                fields.push(downLeft);
+            }
+
+        }
+
+        if (!downRightContainsPiece) {
+
+            let downRight = getFieldByXY(field.x + 1, field.y - i);
+            if (downRight === undefined || downRight.containsPiece()) {
+                downRightContainsPiece = true;
+            } else {
+                fields.push(downRight);
+            }
+
+        }
+
+        if (!upLeftContainsPiece) {
+
+            let upLeft = getFieldByXY(field.x - i, field.y + i);
+            if (upLeft === undefined || upLeft.containsPiece() ) {
+                upLeftContainsPiece = true;
+            } else {
+                fields.push(upLeft);
+            }
+        }
+
+        if (!upRightContainsPiece) {
+
+            let upRight = getFieldByXY(field.x + i, field.y + i);
+            if (upRight === undefined || upRight.containsPiece()) {
+                upRightContainsPiece = true;
+            } else {
+                fields.push(upRight);
+            }
+        }
+
+    }
+    return fields;
+
+}
+
+function getVertical(field, depth, direction) {
+    let fields = [];
+    let downContainsPiece = false;
+    let upContainsPiece = false;
+
+    for (let i = 1; i <= depth ; i++) {
+
+        if (!downContainsPiece) {
+            let down = getFieldByXY(field.x, field.y - i);
+            if (down === undefined || down.containsPiece()) {
+                downContainsPiece = true;
+            } else {
+                fields.push(down);
+            }
+        }
+
+        if (!upContainsPiece) {
+            let up = getFieldByXY(field.x, field.y + i);
+            if (up === undefined || up.containsPiece()) {
+                upContainsPiece = true;
+            } else {
+                fields.push(up);
+            }
+        }
+    }
+    return fields;
+}
+
+
+function getHorizontal(field, depth, direction) {
+    let fields = [];
+    let rightContainsPiece = false;
+    let leftContainsPiece = false;
+
+    for (let i = 1; i <= depth ; i++) {
+
+        if (!rightContainsPiece) {
+            let right = getFieldByXY(field.x + i, field.y);
+            if (right === undefined || right.containsPiece()) {
+                rightContainsPiece = true;
+            } else {
+                fields.push(right);
+            }
+        }
+
+        if (!leftContainsPiece) {
+            let left = getFieldByXY(field.x - i, field.y);
+            if (left === undefined || left.containsPiece()) {
+                leftContainsPiece = true;
+            } else {
+                fields.push(left);
+            }
+        }
+    }
+    return fields;
 }
 
 function getFieldByXY(x, y) {
@@ -294,4 +414,5 @@ function getFieldByXY(x, y) {
             return field;
         }
     }
+
 }
