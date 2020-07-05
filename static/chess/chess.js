@@ -19,9 +19,25 @@ const positions = {
     "h1": new Piece('rook', 'white', "white-rook.svg")
 };
 
+const directions = {
+    diagonal: {
+        upLeft: [-1, 1],
+        upRight: [1, 1],
+        downLeft: [-1, -1],
+        downRight: [1, -1]
+    },
+    straight: {
+        left: [-1, 0],
+        right: [1, 0],
+        up: [0, +1],
+        down: [0, -1]
+    }
+};
+
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 let board = null;
+
 
 function Piece(type, color, svg) {
     this.type = type;
@@ -37,7 +53,10 @@ function Field(piece, id, x, y) {
     this.containsPiece = function () {
         return this.piece !== null;
 
-    }
+    };
+    this.getUpLeft = function () {
+        return [this.x + 1, this.y + 1];
+    };
 
 
 }
@@ -154,15 +173,9 @@ function dragStart() {
     this.classList.add('dragged');
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
-    let diagonal = getHorizontal(getField(fieldId), 2);
-    for (let field of diagonal) {
-        if (field !== undefined) {
-            setUpLegelFields(field);
-        }
-    }
-
-    let vertical = getVertical(getField(fieldId), 2);
-    for (let field of vertical) {
+    const {straight} = directions;
+    let legalFields = getLegalMoves(getField(fieldId), 2, straight);
+    for (let field of legalFields) {
         if (field !== undefined) {
             setUpLegelFields(field);
         }
@@ -182,8 +195,15 @@ function setUpLegelFields(legalField) {
 
 function dragEnd() {
     //remove legal move highlighting
-    document.querySelectorAll('.legal').forEach(element => element.classList.remove('legal'));
+    document.querySelectorAll('.legal').forEach(element => {
+        element.classList.remove('legal');
+        element.removeEventListener('dragleave', dragLeave);
+        element.removeEventListener('dragenter', dragEnter);
+        element.removeEventListener('drop', dragDrop);
+
+    });
     this.classList.remove('invisible');
+    this.classList.remove('hovered');
     this.classList.remove('hold');
     this.classList.add("field");
 
@@ -218,10 +238,13 @@ function dragDrop() {
 
 }
 
-function updateField(oldField, newField) {
-    let piece = getPiece(getField(oldField));
+function updateField(oldFieldId, newFieldId) {
+    let oldField = getField(oldFieldId);
+
+    let piece = getPiece(oldField);
+    oldField.piece = null;
     console.log(piece);
-    getField(newField).piece = piece;
+    getField(newFieldId).piece = piece;
     console.log(board);
 }
 
@@ -242,171 +265,35 @@ function getPiece(currentField) {
     }
 }
 
-
-function getLegalMoves1(field) {
-    let piece = getPiece(field);
-    let legalMoves = [];
-    switch (piece.type) {
-        case 'pawn':
-            let direction = 1;
-            piece.color === 'black' ? direction = -1 : direction = 1;
-            if (field.y === 7 || field.y === 2) {
-                let targetField = getFieldByXY(field.x, (field.y + 2 * direction));
-
-                if (!targetField.containsPiece()) {
-                    legalMoves.push(targetField);
-                }
-
-            }
-            let enemyPiece1 = getFieldByXY(field.x + 1, field.y + direction);
-            let enemyPiece2 = getFieldByXY(field.x - 1, field.y + direction);
-            if (enemyPiece1.containsPiece() && enemyPiece1.piece.color !== piece.color) {
-                legalMoves.push(enemyPiece1);
-            }
-
-            if (enemyPiece2.containsPiece() && enemyPiece2.piece.color !== piece.color) {
-                legalMoves.push(enemyPiece2);
-            }
-
-            legalMoves.push(getFieldByXY(field.x, field.y + direction));
-            return legalMoves;
-        default:
-            return legalMoves;
-
-    }
-
-}
-
-
-function getLegalMoves(currentField) {
-    let piece = getPiece(currentField);
-    let fields = board.fields;
-
-    console.log(fields);
-    switch (piece.type) {
-        case 'pawn':
-            getPawnMoves(currentField);
-            return fields;
-        case 'bishop':
-            break;
-        default:
-            break;
-
-    }
-
-}
-
-function getDiagonal(field, depth) {
+function getLegalMoves(startField, depth, movingType) {
     let fields = [];
-    let downLeftContainsPiece = false;
-    let downRightContainsPiece = false;
-    let upLeftContainsPiece = false;
-    let upRightContainsPiece = false;
+    for (let offSet in movingType) {
+        let offSetXY = movingType[offSet];
+        fields.push(...getMovement(startField, depth, offSetXY[0], offSetXY[1]));
+    }
+    return fields
+}
 
+// immer eine tiefe mehr das ergebnis von tiefe 1 als basis für Tiefe zwei und dann seperat in array pushen.
+function getMovement(startField, depth, offsetX, offSetY) {
+
+    let fields = [];
+    let containsPieceOrIsInvalid = false;
     for (let i = 1; i <= depth; i++) {
-        if (!downLeftContainsPiece) {
-
-            let downLeft = getFieldByXY(field.x - i, field.y - i);
-            if (downLeft === undefined || downLeft.containsPiece()) {
-                downLeftContainsPiece = true;
+        if (!containsPieceOrIsInvalid) {
+            let nextField = getFieldByXY(startField.x + offsetX * i, startField.y + offSetY * i);
+            if (nextField === undefined || nextField.containsPiece()) {
+                containsPieceOrIsInvalid = true;
+                return fields;
             } else {
-                fields.push(downLeft);
-            }
-
-        }
-
-        if (!downRightContainsPiece) {
-
-            let downRight = getFieldByXY(field.x + 1, field.y - i);
-            if (downRight === undefined || downRight.containsPiece()) {
-                downRightContainsPiece = true;
-            } else {
-                fields.push(downRight);
-            }
-
-        }
-
-        if (!upLeftContainsPiece) {
-
-            let upLeft = getFieldByXY(field.x - i, field.y + i);
-            if (upLeft === undefined || upLeft.containsPiece() ) {
-                upLeftContainsPiece = true;
-            } else {
-                fields.push(upLeft);
-            }
-        }
-
-        if (!upRightContainsPiece) {
-
-            let upRight = getFieldByXY(field.x + i, field.y + i);
-            if (upRight === undefined || upRight.containsPiece()) {
-                upRightContainsPiece = true;
-            } else {
-                fields.push(upRight);
+                fields.push(nextField);
             }
         }
 
     }
     return fields;
-
 }
 
-function getVertical(field, depth, direction) {
-    let fields = [];
-    let downContainsPiece = false;
-    let upContainsPiece = false;
-
-    for (let i = 1; i <= depth ; i++) {
-
-        if (!downContainsPiece) {
-            let down = getFieldByXY(field.x, field.y - i);
-            if (down === undefined || down.containsPiece()) {
-                downContainsPiece = true;
-            } else {
-                fields.push(down);
-            }
-        }
-
-        if (!upContainsPiece) {
-            let up = getFieldByXY(field.x, field.y + i);
-            if (up === undefined || up.containsPiece()) {
-                upContainsPiece = true;
-            } else {
-                fields.push(up);
-            }
-        }
-    }
-    return fields;
-}
-
-
-function getHorizontal(field, depth, direction) {
-    let fields = [];
-    let rightContainsPiece = false;
-    let leftContainsPiece = false;
-
-    for (let i = 1; i <= depth ; i++) {
-
-        if (!rightContainsPiece) {
-            let right = getFieldByXY(field.x + i, field.y);
-            if (right === undefined || right.containsPiece()) {
-                rightContainsPiece = true;
-            } else {
-                fields.push(right);
-            }
-        }
-
-        if (!leftContainsPiece) {
-            let left = getFieldByXY(field.x - i, field.y);
-            if (left === undefined || left.containsPiece()) {
-                leftContainsPiece = true;
-            } else {
-                fields.push(left);
-            }
-        }
-    }
-    return fields;
-}
 
 function getFieldByXY(x, y) {
     for (let field of board.fields) {
