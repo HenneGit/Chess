@@ -95,13 +95,11 @@ function newGame() {
 
 function createBoard(board) {
     let contentDiv = document.getElementById('content-div');
-    let boardDiv = document.createElement('div');
-    boardDiv.id = 'board-div';
+    let boardDiv = getDiv('board-div');
     let blackOrWhite = -1;
     for (let field of board.fields) {
 
-        let domField = document.createElement('div');
-        domField.id = field.id;
+        let domField = getDiv(field.id);
         let classType = blackOrWhite < 0 ? 'white' : 'black';
         domField.classList.add(classType);
         domField.classList.add('field');
@@ -125,16 +123,36 @@ function createBoard(board) {
         }
     }
     contentDiv.appendChild(boardDiv);
-    let xAxis = document.createElement('div');
-    let yAxis = document.createElement('div');
-    xAxis.id = "x-axis";
-    yAxis.id = "y-axis";
+    let xAxis = getDiv("x-axis");
+    let yAxis = getDiv('y-axis');
     appendAxis(yAxis, true);
     appendAxis(xAxis, false);
     contentDiv.appendChild(yAxis);
     contentDiv.appendChild(xAxis);
+
+    let panel = getDiv('panel');
+    createPanel(panel);
+    contentDiv.appendChild(panel);
     flip();
 
+}
+
+function createPanel(panel) {
+    let whiteGraveyard = getDiv('white-graveyard');
+    let blackGraveyard = getDiv('black-graveyard');
+    let details = getDiv('details');
+    blackGraveyard.classList.add('graveyard');
+    whiteGraveyard.classList.add('graveyard');
+    panel.appendChild(blackGraveyard);
+    panel.appendChild(details);
+    panel.appendChild(whiteGraveyard);
+
+}
+
+function getDiv(id) {
+    let div = document.createElement('div');
+    div.id = id;
+    return div;
 }
 
 function appendAxis(axis, hasLetters) {
@@ -177,15 +195,19 @@ function dragStart() {
     let legalFields = getLegalMoves(getField(fieldId), 2, straight);
     for (let field of legalFields) {
         if (field !== undefined) {
-            setUpLegelFields(field);
+            setUpLegalFields(field);
         }
     }
 
 }
 
-function setUpLegelFields(legalField) {
+function setUpLegalFields(legalField) {
     let domField = document.getElementById(legalField.id);
-    domField.classList.add('legal');
+    if (legalField.containsPiece()){
+        domField.classList.add('take');
+    } else {
+        domField.classList.add('legal');
+    }
     domField.addEventListener('dragover', dragOver);
     domField.addEventListener('dragleave', dragLeave);
     domField.addEventListener('dragenter', dragEnter);
@@ -194,16 +216,9 @@ function setUpLegelFields(legalField) {
 
 
 function dragEnd() {
-    //remove legal move highlighting
-    document.querySelectorAll('.legal').forEach(element => {
-        element.classList.remove('legal');
-        element.removeEventListener('dragleave', dragLeave);
-        element.removeEventListener('dragenter', dragEnter);
-        element.removeEventListener('drop', dragDrop);
+    clearDragAndDropProps();
 
-    });
     this.classList.remove('invisible');
-    this.classList.remove('hovered');
     this.classList.remove('hold');
     this.classList.add("field");
 
@@ -221,20 +236,43 @@ function dragEnter(event) {
 
 }
 
-function dragLeave() {
+function dragLeave(event) {
+    event.preventDefault();
     this.classList.remove('hovered');
 
 }
 
+function clearDragAndDropProps() {
+     document.querySelectorAll('.legal').forEach(element => {
+        element.classList.remove('legal');
+        element.classList.remove('take');
+        element.removeEventListener('dragover', dragOver);
+
+        element.removeEventListener('dragleave', dragLeave);
+        element.removeEventListener('dragenter', dragEnter);
+        element.removeEventListener('drop', dragDrop);
+
+    });
+}
+
 function dragDrop() {
     let draggedElement = document.querySelector('.dragged');
+
+    let field = getField(this.id);
+    if (field.containsPiece()){
+        let pieceColor = field.piece.color;
+        let domPiece = this.querySelector('img');
+        document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
+        field.piece = null;
+    }
     let oldFieldId = draggedElement.parentElement.id;
     this.classList.remove('hovered');
-    this.append(draggedElement);
-
-
+    this.classList.remove('take');
+    this.appendChild(draggedElement);
     draggedElement.classList.remove('dragged');
     updateField(oldFieldId, this.id);
+
+    clearDragAndDropProps();
 
 }
 
@@ -274,7 +312,6 @@ function getLegalMoves(startField, depth, movingType) {
     return fields
 }
 
-// immer eine tiefe mehr das ergebnis von tiefe 1 als basis für Tiefe zwei und dann seperat in array pushen.
 function getMovement(startField, depth, offsetX, offSetY) {
 
     let fields = [];
@@ -283,13 +320,15 @@ function getMovement(startField, depth, offsetX, offSetY) {
         if (!containsPieceOrIsInvalid) {
             let nextField = getFieldByXY(startField.x + offsetX * i, startField.y + offSetY * i);
             if (nextField === undefined || nextField.containsPiece()) {
+                if (nextField !== undefined && nextField.piece.color !== startField.piece.color){
+                    fields.push(nextField);
+                }
                 containsPieceOrIsInvalid = true;
                 return fields;
             } else {
                 fields.push(nextField);
             }
         }
-
     }
     return fields;
 }
@@ -301,5 +340,4 @@ function getFieldByXY(x, y) {
             return field;
         }
     }
-
 }
