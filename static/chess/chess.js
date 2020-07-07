@@ -54,11 +54,6 @@ function Field(piece, id, x, y) {
         return this.piece !== null;
 
     };
-    this.getUpLeft = function () {
-        return [this.x + 1, this.y + 1];
-    };
-
-
 }
 
 function Board(fields) {
@@ -134,6 +129,8 @@ function createBoard(board) {
     createPanel(panel);
     contentDiv.appendChild(panel);
     flip();
+    console.log(Array.from(board));
+    console.log(getAllFieldWithPiecesByColor('black'));
 
 }
 
@@ -191,8 +188,7 @@ function dragStart() {
     this.classList.add('dragged');
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
-    const {straight} = directions;
-    let legalFields = getLegalMoves(getField(fieldId), 2, straight);
+    let legalFields = getMovesForPiece(getField(fieldId));
     for (let field of legalFields) {
         if (field !== undefined) {
             setUpLegalFields(field);
@@ -203,7 +199,7 @@ function dragStart() {
 
 function setUpLegalFields(legalField) {
     let domField = document.getElementById(legalField.id);
-    if (legalField.containsPiece()){
+    if (legalField.containsPiece()) {
         domField.classList.add('take');
     } else {
         domField.classList.add('legal');
@@ -243,23 +239,31 @@ function dragLeave(event) {
 }
 
 function clearDragAndDropProps() {
-     document.querySelectorAll('.legal').forEach(element => {
+    document.querySelectorAll('.legal').forEach(element => {
         element.classList.remove('legal');
-        element.classList.remove('take');
-        element.removeEventListener('dragover', dragOver);
+        removeListeners(element);
 
+
+    });
+    document.querySelectorAll('.take').forEach(element => {
+        element.classList.remove('take');
+        removeListeners(element);
+    });
+
+    function removeListeners(element) {
+        element.removeEventListener('dragover', dragOver);
         element.removeEventListener('dragleave', dragLeave);
         element.removeEventListener('dragenter', dragEnter);
         element.removeEventListener('drop', dragDrop);
+    }
 
-    });
 }
 
 function dragDrop() {
     let draggedElement = document.querySelector('.dragged');
 
     let field = getField(this.id);
-    if (field.containsPiece()){
+    if (field.containsPiece()) {
         let pieceColor = field.piece.color;
         let domPiece = this.querySelector('img');
         document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
@@ -303,24 +307,28 @@ function getPiece(currentField) {
     }
 }
 
-function getLegalMoves(startField, depth, movingType) {
+function getLegalMoves(startField, depth, movingType, strikePeace) {
     let fields = [];
     for (let offSet in movingType) {
         let offSetXY = movingType[offSet];
-        fields.push(...getMovement(startField, depth, offSetXY[0], offSetXY[1]));
+        fields.push(...getMovement(startField, depth, offSetXY[0], offSetXY[1], strikePeace));
     }
     return fields
 }
 
-function getMovement(startField, depth, offsetX, offSetY) {
+function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
 
     let fields = [];
     let containsPieceOrIsInvalid = false;
     for (let i = 1; i <= depth; i++) {
         if (!containsPieceOrIsInvalid) {
             let nextField = getFieldByXY(startField.x + offsetX * i, startField.y + offSetY * i);
-            if (nextField === undefined || nextField.containsPiece()) {
-                if (nextField !== undefined && nextField.piece.color !== startField.piece.color){
+            if (nextField === undefined) {
+                containsPieceOrIsInvalid = true;
+            } else if (nextField.containsPiece()) {
+                let nextFieldPiece = nextField.piece;
+                //set field as legal if there is a piece of opposite color which is not the king.
+                if (nextFieldPiece.color !== startField.piece.color && strikePeace && nextFieldPiece.type !== 'king') {
                     fields.push(nextField);
                 }
                 containsPieceOrIsInvalid = true;
@@ -331,6 +339,143 @@ function getMovement(startField, depth, offsetX, offSetY) {
         }
     }
     return fields;
+}
+
+
+function getPawnMoves(field) {
+    let legalMoves = [];
+    let color = field.piece.color;
+    let yOffset = color === 'black' ? -1 : 1;
+    const {straight} = directions;
+    //if pawn on base line movement is two.
+    if (field.y === 2 || field.y === 7) {
+        legalMoves.push(...getLegalMoves(field, 2, straight, false));
+
+    } else {
+        legalMoves.push(...getLegalMoves(field, 1, straight, false));
+    }
+    let fieldLeft = getFieldByXY(field.x + 1, field.y + yOffset);
+    let fieldRight = getFieldByXY(field.x - 1, field.y + yOffset);
+    if (fieldLeft !== undefined && fieldLeft.containsPiece() && fieldLeft.piece.color !== color) {
+
+        legalMoves.push(fieldLeft);
+
+    }
+    if (fieldRight !== undefined && fieldRight.containsPiece() && fieldRight.piece.color !== color) {
+
+        legalMoves.push(fieldRight);
+
+    }
+    let filterMoves = function (legalField) {
+        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
+    };
+
+
+    return legalMoves.filter(legalField => filterMoves(legalField));
+}
+
+
+function getBishopMoves(field) {
+    const {diagonal} = directions;
+    return getLegalMoves(field, 7, diagonal, true);
+}
+
+function getRookMoves(field) {
+    const {straight} = directions;
+    return getLegalMoves(field, 7, straight, true);
+}
+
+function getQueenMoves(field) {
+    const {straight} = directions;
+    const {diagonal} = directions;
+    let legalMoves = [];
+    legalMoves.push(...getLegalMoves(field, 7, straight, true));
+    legalMoves.push(...getLegalMoves(field, 7, diagonal, true));
+    return legalMoves;
+}
+
+function getKingMoves(field) {
+    const {straight} = directions;
+    const {diagonal} = directions;
+    let color = field.piece.color === 'white' ? "black" : "white";
+    let legalMoves = [];
+    legalMoves.push(...getLegalMoves(field, 1, straight));
+    legalMoves.push(...getLegalMoves(field, 1, diagonal));
+
+    return legalMoves.filter(field => !fieldHasChess(field, color));
+}
+
+function fieldHasChess(fieldToCheck, color) {
+    let enemyFields = getAllFieldWithPiecesByColor(color);
+    let allLegalMoves = [];
+    for (let enemyField of enemyFields) {
+        allLegalMoves.push(...getMovesForPiece(enemyField));
+    }
+    for (let field of allLegalMoves) {
+        if (field === fieldToCheck) {
+            return true;
+        }
+
+    }
+    return false;
+}
+
+function fieldIsCovered() {
+
+}
+
+function getAllFieldWithPiecesByColor(color) {
+    return Array.from(board.fields).reduce((total, field) => {
+        if (field.containsPiece() && field.piece.color === color) {
+            total.push(field);
+        }
+        return total;
+    }, []);
+}
+
+/**
+ * constructs moves for piece knight.
+ * @param field the field to start from
+ * @returns {[Field]} array of fields with legal moves.
+ */
+function getKnightMoves(field) {
+    let legalFields = [];
+    let vectors = [[2, -1], [2, 1], [-1, 2], [1, 2], [-1, -2], [1, -2], [-2, 1], [-2, 1]];
+
+    for (let vector of vectors) {
+        let nextField = getFieldByXY(field.x + vector[0], field.y + vector[1]);
+        if (nextField === undefined || nextField.containsPiece()) {
+            if (nextField !== undefined && nextField.piece.color !== field.piece.color) {
+                legalFields.push(nextField);
+            }
+        } else {
+            legalFields.push(nextField);
+        }
+    }
+    return legalFields;
+}
+
+
+/**
+ * decides which legal moves to return according to given peace.
+ * @param field
+ * @returns {Field[]|[]}
+ */
+function getMovesForPiece(field) {
+    switch (field.piece.type) {
+        case "pawn":
+            return getPawnMoves(field);
+        case "bishop":
+            return getBishopMoves(field);
+        case 'rook':
+            return getRookMoves(field);
+        case 'queen':
+            return getQueenMoves(field);
+        case 'king' :
+            return getKingMoves(field);
+        case 'knight':
+            return getKnightMoves(field);
+    }
 }
 
 
