@@ -4,16 +4,16 @@ const positions = {
     "a8": new Piece('rook', 'black', 'black-rook.svg'),
     "b8": new Piece('knight', 'black', "black-knight.svg"),
     "c8": new Piece('bishop', 'black', "black-bishop.svg"),
-    "d8": new Piece('king', 'black', "black-king.svg"),
-    "e8": new Piece('queen', 'black', "black-queen.svg"),
+    "d8": new Piece('queen', 'black', "black-queen.svg"),
+    "e8": new Piece('king', 'black', "black-king.svg"),
     "f8": new Piece('bishop', 'black', "black-bishop.svg"),
     "g8": new Piece('knight', 'black', "black-knight.svg"),
     "h8": new Piece('rook', 'black', "black-rook.svg"),
     "a1": new Piece('rook', 'white', "white-rook.svg"),
     "b1": new Piece('knight', 'white', "white-knight.svg"),
     "c1": new Piece('bishop', 'white', "white-bishop.svg"),
-    "d1": new Piece('king', 'white', "white-king.svg"),
-    "e1": new Piece('queen', 'white', "white-queen.svg"),
+    "d1": new Piece('queen', 'white', "white-queen.svg"),
+    "e1": new Piece('king', 'white', "white-king.svg"),
     "f1": new Piece('bishop', 'white', "white-bishop.svg"),
     "g1": new Piece('knight', 'white', "white-knight.svg"),
     "h1": new Piece('rook', 'white', "white-rook.svg")
@@ -102,12 +102,15 @@ function createBoard(board) {
         domField.setAttribute('y', field.y);
         if (field.piece !== null) {
             let svg = document.createElement('img');
+            let imgDiv = document.createElement('div');
+            imgDiv.id = field.id + "-piece";
             svg.src = field.piece.svg;
-            svg.classList.add("piece");
-            svg.draggable = true;
-            svg.addEventListener('dragstart', dragStart);
-            svg.addEventListener('dragend', dragEnd);
-            domField.appendChild(svg);
+            imgDiv.classList.add("piece");
+            imgDiv.draggable = true;
+            imgDiv.addEventListener('dragstart', dragStart);
+            imgDiv.addEventListener('dragend', dragEnd);
+            imgDiv.appendChild(svg);
+            domField.appendChild(imgDiv);
         }
 
 
@@ -130,7 +133,7 @@ function createBoard(board) {
     contentDiv.appendChild(panel);
     flip();
     console.log(Array.from(board));
-    console.log(getAllFieldWithPiecesByColor('black'));
+    console.log(getAllFieldsWithPiecesByColor('black'));
 
 }
 
@@ -185,6 +188,7 @@ function move(sourceField, targetField) {
 
 function dragStart() {
     this.classList = 'hold';
+    document.querySelectorAll('.dragged').forEach(el => el.classList.remove('dragged'));
     this.classList.add('dragged');
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
@@ -238,6 +242,34 @@ function dragLeave(event) {
 
 }
 
+function dragDrop() {
+    let draggedElement = document.querySelector('.dragged');
+
+    let field = getField(this.id);
+    if (field.containsPiece()) {
+        let pieceColor = field.piece.color;
+        let domPiece = document.getElementById(this.id + "-piece");
+        document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
+        field.piece = null;
+    }
+    let oldFieldId = draggedElement.parentElement.id;
+    this.classList.remove('hovered');
+    this.classList.remove('take');
+    draggedElement.id = this.id + "-piece";
+    this.appendChild(draggedElement);
+    draggedElement.classList.remove('dragged');
+    clearDragAndDropProps();
+
+    resolveDrop(oldFieldId, this);
+
+}
+
+function resolveDrop(oldfieldId, field){
+    updateField(oldfieldId, field.id);
+
+}
+
+
 function clearDragAndDropProps() {
     document.querySelectorAll('.legal').forEach(element => {
         element.classList.remove('legal');
@@ -259,27 +291,6 @@ function clearDragAndDropProps() {
 
 }
 
-function dragDrop() {
-    let draggedElement = document.querySelector('.dragged');
-
-    let field = getField(this.id);
-    if (field.containsPiece()) {
-        let pieceColor = field.piece.color;
-        let domPiece = this.querySelector('img');
-        document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
-        field.piece = null;
-    }
-    let oldFieldId = draggedElement.parentElement.id;
-    this.classList.remove('hovered');
-    this.classList.remove('take');
-    this.appendChild(draggedElement);
-    draggedElement.classList.remove('dragged');
-    updateField(oldFieldId, this.id);
-
-    clearDragAndDropProps();
-
-}
-
 function updateField(oldFieldId, newFieldId) {
     let oldField = getField(oldFieldId);
 
@@ -290,22 +301,6 @@ function updateField(oldFieldId, newFieldId) {
     console.log(board);
 }
 
-function getField(fieldId) {
-    for (let field of board.fields) {
-        if (field.id === fieldId) {
-            return field;
-        }
-    }
-}
-
-function getPiece(currentField) {
-    for (let field of board.fields) {
-
-        if (field.id === currentField.id) {
-            return field.piece;
-        }
-    }
-}
 
 function getLegalMoves(startField, depth, movingType, strikePeace) {
     let fields = [];
@@ -327,8 +322,7 @@ function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
                 containsPieceOrIsInvalid = true;
             } else if (nextField.containsPiece()) {
                 let nextFieldPiece = nextField.piece;
-                //set field as legal if there is a piece of opposite color which is not the king.
-                if (nextFieldPiece.color !== startField.piece.color && strikePeace && nextFieldPiece.type !== 'king') {
+                if (nextFieldPiece.color !== startField.piece.color && strikePeace) {
                     fields.push(nextField);
                 }
                 containsPieceOrIsInvalid = true;
@@ -342,89 +336,52 @@ function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
 }
 
 
-function getPawnMoves(field) {
-    let legalMoves = [];
-    let color = field.piece.color;
-    let yOffset = color === 'black' ? -1 : 1;
-    const {straight} = directions;
-    //if pawn on base line movement is two.
-    if (field.y === 2 || field.y === 7) {
-        legalMoves.push(...getLegalMoves(field, 2, straight, false));
 
-    } else {
-        legalMoves.push(...getLegalMoves(field, 1, straight, false));
-    }
-    let fieldLeft = getFieldByXY(field.x + 1, field.y + yOffset);
-    let fieldRight = getFieldByXY(field.x - 1, field.y + yOffset);
-    if (fieldLeft !== undefined && fieldLeft.containsPiece() && fieldLeft.piece.color !== color) {
-
-        legalMoves.push(fieldLeft);
-
-    }
-    if (fieldRight !== undefined && fieldRight.containsPiece() && fieldRight.piece.color !== color) {
-
-        legalMoves.push(fieldRight);
-
-    }
-    let filterMoves = function (legalField) {
-        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
-    };
-
-
-    return legalMoves.filter(legalField => filterMoves(legalField));
-}
-
-
-function getBishopMoves(field) {
-    const {diagonal} = directions;
-    return getLegalMoves(field, 7, diagonal, true);
-}
-
-function getRookMoves(field) {
-    const {straight} = directions;
-    return getLegalMoves(field, 7, straight, true);
-}
-
-function getQueenMoves(field) {
-    const {straight} = directions;
-    const {diagonal} = directions;
-    let legalMoves = [];
-    legalMoves.push(...getLegalMoves(field, 7, straight, true));
-    legalMoves.push(...getLegalMoves(field, 7, diagonal, true));
-    return legalMoves;
-}
-
-function getKingMoves(field) {
-    const {straight} = directions;
-    const {diagonal} = directions;
-    let color = field.piece.color === 'white' ? "black" : "white";
-    let legalMoves = [];
-    legalMoves.push(...getLegalMoves(field, 1, straight));
-    legalMoves.push(...getLegalMoves(field, 1, diagonal));
-
-    return legalMoves.filter(field => !fieldHasChess(field, color));
-}
-
-function fieldHasChess(fieldToCheck, color) {
-    let enemyFields = getAllFieldWithPiecesByColor(color);
-    let allLegalMoves = [];
-    for (let enemyField of enemyFields) {
-        allLegalMoves.push(...getMovesForPiece(enemyField));
-    }
+/**
+ * checks if the field is in range of an enemy piece.
+ * @param fieldToCheck the field the king wants to move on.
+ * @param color opposite color of current piece.
+ * @returns {boolean} true if an enemy piece controls the field.
+ */
+function fieldHasCheck(fieldToCheck, color) {
+    let enemyFields = getAllFieldsWithPiecesByColor(color);
+    let allLegalMoves = getAllLegalMoves(enemyFields);
     for (let field of allLegalMoves) {
         if (field === fieldToCheck) {
             return true;
         }
-
     }
     return false;
 }
 
-function fieldIsCovered() {
-
+function getAllLegalMoves(fields) {
+    let allLegalMoves = [];
+    for (let enemyField of fields) {
+        if (enemyField.piece.type === 'king'){
+            const {diagonal} = directions;
+            const {straight} = directions;
+            allLegalMoves.push(...getLegalMoves(enemyField, 1, diagonal, true))
+            allLegalMoves.push(...getLegalMoves(enemyField, 1, straight, true))
+        }
+        allLegalMoves.push(...getMovesForPiece(enemyField));
+    }
+    return allLegalMoves;
 }
 
-function getAllFieldWithPiecesByColor(color) {
+function checkForCheck(color) {
+    let allFieldsWithColor = getAllFieldsWithPiecesByColor(color);
+    allFieldsWithColor.filter(field => field.piece.type !== 'king');
+    let legalMoves = getAllLegalMoves(getAllFieldsWithPiecesByColor(color));
+    let containsKing = legalMoves.filter(field => {
+        if (field.containsPiece()) {
+
+            return field.piece.type === 'king';
+        }
+    });
+    return containsKing.length === 1;
+}
+
+function getAllFieldsWithPiecesByColor(color) {
     return Array.from(board.fields).reduce((total, field) => {
         if (field.containsPiece() && field.piece.color === color) {
             total.push(field);
@@ -455,6 +412,67 @@ function getKnightMoves(field) {
     return legalFields;
 }
 
+function getPawnMoves(field) {
+    let legalMoves = [];
+    let color = field.piece.color;
+    let yOffset = color === 'black' ? -1 : 1;
+    const { straight } = directions;
+
+    if (field.y === 2 || field.y === 7) {
+        legalMoves.push(...getLegalMoves(field, 2, straight, false));
+
+    } else {
+        legalMoves.push(...getLegalMoves(field, 1, straight, false));
+    }
+    let fieldLeft = getFieldByXY(field.x + 1, field.y + yOffset);
+    let fieldRight = getFieldByXY(field.x - 1, field.y + yOffset);
+
+    if (fieldLeft !== undefined && fieldLeft.containsPiece() && fieldLeft.piece.color !== color) {
+
+        legalMoves.push(fieldLeft);
+
+    }
+    if (fieldRight !== undefined && fieldRight.containsPiece() && fieldRight.piece.color !== color) {
+
+        legalMoves.push(fieldRight);
+
+    }
+    let filterMoves = function (legalField) {
+        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
+    };
+    return legalMoves.filter(legalField => filterMoves(legalField));
+}
+
+
+function getBishopMoves(field) {
+    const { diagonal } = directions;
+    return getLegalMoves(field, 7, diagonal, true);
+}
+
+function getRookMoves(field) {
+    const { straight } = directions;
+    return getLegalMoves(field, 7, straight, true);
+}
+
+function getQueenMoves(field) {
+    const { straight } = directions;
+    const { diagonal } = directions;
+    let legalMoves = [];
+    legalMoves.push(...getLegalMoves(field, 7, straight, true));
+    legalMoves.push(...getLegalMoves(field, 7, diagonal, true));
+    return legalMoves;
+}
+
+function getKingMoves(field) {
+    const { straight } = directions;
+    const { diagonal } = directions;
+    let color = field.piece.color === 'white' ? "black" : "white";
+    let legalMoves = [];
+    legalMoves.push(...getLegalMoves(field, 1, straight));
+    legalMoves.push(...getLegalMoves(field, 1, diagonal));
+
+    return legalMoves.filter(field => !fieldHasCheck(field, color));
+}
 
 /**
  * decides which legal moves to return according to given peace.
@@ -471,13 +489,29 @@ function getMovesForPiece(field) {
             return getRookMoves(field);
         case 'queen':
             return getQueenMoves(field);
-        case 'king' :
+        case 'king':
             return getKingMoves(field);
         case 'knight':
             return getKnightMoves(field);
     }
 }
 
+function getField(fieldId) {
+    for (let field of board.fields) {
+        if (field.id === fieldId) {
+            return field;
+        }
+    }
+}
+
+function getPiece(currentField) {
+    for (let field of board.fields) {
+
+        if (field.id === currentField.id) {
+            return field.piece;
+        }
+    }
+}
 
 function getFieldByXY(x, y) {
     for (let field of board.fields) {
