@@ -37,7 +37,9 @@ const directions = {
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 let board = null;
-
+let kingMoved = false;
+let rightRookMoved = false;
+let leftRookMoved = false;
 
 function Piece(type, color, svg) {
     this.type = type;
@@ -63,6 +65,9 @@ function Board(fields) {
 
 newGame();
 
+/**
+ * init a new board with pieces in starting position.
+ */
 function newGame() {
 
     let fields = [];
@@ -87,7 +92,10 @@ function newGame() {
     createBoard(board);
 }
 
-
+/**
+ * create the board and add pieces to it.
+ * @param board
+ */
 function createBoard(board) {
     let contentDiv = document.getElementById('content-div');
     let boardDiv = getDiv('board-div');
@@ -137,6 +145,10 @@ function createBoard(board) {
 
 }
 
+/**
+ * create the panel where graveyard, moves and time is displayed.
+ * @param panel
+ */
 function createPanel(panel) {
     let whiteGraveyard = getDiv('white-graveyard');
     let blackGraveyard = getDiv('black-graveyard');
@@ -149,12 +161,22 @@ function createPanel(panel) {
 
 }
 
+/**
+ * create a simple div and add given id.
+ * @param id the id to add to the created div.
+ * @returns {HTMLDivElement} the created element.
+ */
 function getDiv(id) {
     let div = document.createElement('div');
     div.id = id;
     return div;
 }
 
+/**
+ * append x(a - h) and y(1-8) axis
+ * @param axis
+ * @param hasLetters
+ */
 function appendAxis(axis, hasLetters) {
     let letterCount = 7;
     for (let i = 0; i < 8; i++) {
@@ -165,7 +187,9 @@ function appendAxis(axis, hasLetters) {
     }
 
 }
-
+/**
+ * mirror the board.
+ */
 function flip() {
     let boarDiv = document.getElementById('board-div');
     let xAxis = document.getElementById('x-axis');
@@ -178,6 +202,11 @@ function flip() {
     }
 }
 
+/**
+ * move piece from sourceField to targetField.
+ * @param sourceField starting Field.
+ * @param targetField field to move to.
+ */
 function move(sourceField, targetField) {
     let source = document.getElementById(sourceField);
     let piece = source.querySelector('.piece');
@@ -185,14 +214,27 @@ function move(sourceField, targetField) {
     target.appendChild(piece);
 }
 
-
+/**
+ * start dragging a piece. Applies classes.
+ */
 function dragStart() {
     this.classList = 'hold';
     document.querySelectorAll('.dragged').forEach(el => el.classList.remove('dragged'));
     this.classList.add('dragged');
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
-    let legalFields = getMovesForPiece(getField(fieldId));
+    let currentField = getField(fieldId);
+    let legalFields = getMovesForPiece(currentField);
+    console.log(checkForCheck('black'));
+    if (checkForCheck('black')) {
+        legalFields = legalFields.filter(field => {
+            updateField(currentField.id, field.id);
+            let resolvesCheck = checkForCheck('black');
+            updateField(field.id, currentField.id);
+            return !resolvesCheck;
+        })
+
+    }
     for (let field of legalFields) {
         if (field !== undefined) {
             setUpLegalFields(field);
@@ -201,6 +243,10 @@ function dragStart() {
 
 }
 
+/**
+ * applies listeners and classes to a field that is legal for the given piece.
+ * @param legalField the field the piece is allowed to move on.
+ */
 function setUpLegalFields(legalField) {
     let domField = document.getElementById(legalField.id);
     if (legalField.containsPiece()) {
@@ -224,24 +270,39 @@ function dragEnd() {
 
 }
 
+/**
+ * triggered when a piece is holding above a field.
+ * @param event
+ */
 function dragOver(event) {
     event.preventDefault();
     this.classList.add('hovered');
 
 }
 
+/**
+ * triggered when a piece enters a field while dragged.
+ * @param event
+ */
 function dragEnter(event) {
     event.preventDefault();
     this.classList.add('hovered');
 
 }
 
+/**
+ * triggered when a piece leaves a field while dragged.
+ * @param event
+ */
 function dragLeave(event) {
     event.preventDefault();
     this.classList.remove('hovered');
 
 }
 
+/**
+ * triggered when a piece was dropped on a field.
+ */
 function dragDrop() {
     let draggedElement = document.querySelector('.dragged');
 
@@ -264,12 +325,20 @@ function dragDrop() {
 
 }
 
-function resolveDrop(oldfieldId, field){
-    updateField(oldfieldId, field.id);
+/**
+ * updates board after movement and test if a check is given.
+ * @param oldfieldId old field of moved piece.
+ * @param newField field the piece moved to.
+ */
+function resolveDrop(oldfieldId, newField) {
+    updateField(oldfieldId, newField.id);
+    let colorToCheck = getField(newField.id).piece.color;
 
 }
 
-
+/**
+ * clear all classes and listeners when drop was performed.
+ */
 function clearDragAndDropProps() {
     document.querySelectorAll('.legal').forEach(element => {
         element.classList.remove('legal');
@@ -291,6 +360,11 @@ function clearDragAndDropProps() {
 
 }
 
+/**
+ * update piece movenment in board.
+ * @param oldFieldId the old field to delete piece from.
+ * @param newFieldId the new field to set the piece on.
+ */
 function updateField(oldFieldId, newFieldId) {
     let oldField = getField(oldFieldId);
 
@@ -301,7 +375,14 @@ function updateField(oldFieldId, newFieldId) {
     console.log(board);
 }
 
-
+/**
+ * iterates over the given direction and returns legal fields.
+ * @param startField the field to start from.
+ * @param depth the amount of tiles to scan.
+ * @param movingType straight or diagonal.
+ * @param strikePeace if true a discovered enemy piece is marked as strikeable.
+ * @returns {[fields]} all legal fields for the given piece.
+ */
 function getLegalMoves(startField, depth, movingType, strikePeace) {
     let fields = [];
     for (let offSet in movingType) {
@@ -311,6 +392,17 @@ function getLegalMoves(startField, depth, movingType, strikePeace) {
     return fields
 }
 
+
+/**
+ * walks all fields in given depth in the given directions until a friendly or an enemy piece is discovered or if
+ * end of field is reached. Returns all collected fields.
+ * @param startField the field to start from
+ * @param depth the amount of tiles to walk into a certain direction.
+ * @param offsetX direction x.
+ * @param offSetY direction y.
+ * @param strikePeace if true a discovered enemy piece is marked as strikeable.
+ * @returns {[]} all legal fields.
+ */
 function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
 
     let fields = [];
@@ -336,7 +428,6 @@ function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
 }
 
 
-
 /**
  * checks if the field is in range of an enemy piece.
  * @param fieldToCheck the field the king wants to move on.
@@ -345,7 +436,7 @@ function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
  */
 function fieldHasCheck(fieldToCheck, color) {
     let enemyFields = getAllFieldsWithPiecesByColor(color);
-    let allLegalMoves = getAllLegalMoves(enemyFields);
+    let allLegalMoves = getLegalMovesForAllPieces(enemyFields);
     for (let field of allLegalMoves) {
         if (field === fieldToCheck) {
             return true;
@@ -354,24 +445,35 @@ function fieldHasCheck(fieldToCheck, color) {
     return false;
 }
 
-function getAllLegalMoves(fields) {
+/**
+ * get all legal moves for all pieces currently on board.
+ * @param fields fields with pieces.
+ * @returns {[]} all legal moves for all pieces currently on board.
+ */
+function getLegalMovesForAllPieces(fields) {
     let allLegalMoves = [];
     for (let enemyField of fields) {
-        if (enemyField.piece.type === 'king'){
+        if (enemyField.piece.type === 'king') {
             const {diagonal} = directions;
             const {straight} = directions;
             allLegalMoves.push(...getLegalMoves(enemyField, 1, diagonal, true))
             allLegalMoves.push(...getLegalMoves(enemyField, 1, straight, true))
+        } else {
+            allLegalMoves.push(...getMovesForPiece(enemyField));
         }
-        allLegalMoves.push(...getMovesForPiece(enemyField));
     }
     return allLegalMoves;
 }
 
+/**
+ * check if a check is given.
+ * @param color the color to check if it is in check.
+ * @returns {boolean} true if color has a current check.
+ */
 function checkForCheck(color) {
     let allFieldsWithColor = getAllFieldsWithPiecesByColor(color);
     allFieldsWithColor.filter(field => field.piece.type !== 'king');
-    let legalMoves = getAllLegalMoves(getAllFieldsWithPiecesByColor(color));
+    let legalMoves = getLegalMovesForAllPieces(getAllFieldsWithPiecesByColor(color));
     let containsKing = legalMoves.filter(field => {
         if (field.containsPiece()) {
 
@@ -381,6 +483,11 @@ function checkForCheck(color) {
     return containsKing.length === 1;
 }
 
+/**
+ * get all fields containing pieces by given color.
+ * @param color the color to get all pieces from.
+ * @returns {fields} all fields with pieces.
+ */
 function getAllFieldsWithPiecesByColor(color) {
     return Array.from(board.fields).reduce((total, field) => {
         if (field.containsPiece() && field.piece.color === color) {
@@ -416,7 +523,7 @@ function getPawnMoves(field) {
     let legalMoves = [];
     let color = field.piece.color;
     let yOffset = color === 'black' ? -1 : 1;
-    const { straight } = directions;
+    const {straight} = directions;
 
     if (field.y === 2 || field.y === 7) {
         legalMoves.push(...getLegalMoves(field, 2, straight, false));
@@ -443,20 +550,29 @@ function getPawnMoves(field) {
     return legalMoves.filter(legalField => filterMoves(legalField));
 }
 
+function castleRight(kingField) {
+    let rookField = getFieldByXY(kingField.x + 3, kingField.y);
+    move(rookField, getFieldByXY(rookField.x - 2, rookField.y));
+}
+
+function castleLeft(kingField) {
+    let rookField = getFieldByXY(kingField.x - 4, kingField.y);
+    move(rookField, getFieldByXY(rookField.x + 3, rookField.y));
+}
 
 function getBishopMoves(field) {
-    const { diagonal } = directions;
+    const {diagonal} = directions;
     return getLegalMoves(field, 7, diagonal, true);
 }
 
 function getRookMoves(field) {
-    const { straight } = directions;
+    const {straight} = directions;
     return getLegalMoves(field, 7, straight, true);
 }
 
 function getQueenMoves(field) {
-    const { straight } = directions;
-    const { diagonal } = directions;
+    const {straight} = directions;
+    const {diagonal} = directions;
     let legalMoves = [];
     legalMoves.push(...getLegalMoves(field, 7, straight, true));
     legalMoves.push(...getLegalMoves(field, 7, diagonal, true));
@@ -464,14 +580,40 @@ function getQueenMoves(field) {
 }
 
 function getKingMoves(field) {
-    const { straight } = directions;
-    const { diagonal } = directions;
+    const {straight} = directions;
+    const {diagonal} = directions;
     let color = field.piece.color === 'white' ? "black" : "white";
     let legalMoves = [];
     legalMoves.push(...getLegalMoves(field, 1, straight));
     legalMoves.push(...getLegalMoves(field, 1, diagonal));
 
+    legalMoves.push(...checkForCastle(field));
+
     return legalMoves.filter(field => !fieldHasCheck(field, color));
+}
+
+function checkForCastle(field) {
+    let legalMoves = [];
+    let fieldx1 = getFieldByXY(field.x + 1, field.y);
+    let fieldx2 = getFieldByXY(field.x + 2, field.y);
+    let fieldLeftX1 = getFieldByXY(field.x - 1, field.y);
+    let fieldLeftX2 = getFieldByXY(field.x - 2, field.y);
+    let fieldLeftX3 = getFieldByXY(field.x - 3, field.y);
+    if (!kingMoved) {
+        if (fieldx1.containsPiece() && !fieldx2.containsPiece() && !rightRookMoved) {
+            fieldx2.addEventListener('dropped', function (field) {
+                castleRight(field);
+            });
+            legalMoves.push(fieldx2);
+        }
+        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && !leftRookMoved) {
+            fieldx2.addEventListener('dropped', function (field) {
+                castleLeft(field);
+            });
+            legalMoves.push(fieldLeftX2);
+        }
+    }
+    return legalMoves;
 }
 
 /**
@@ -496,6 +638,10 @@ function getMovesForPiece(field) {
     }
 }
 
+/**
+ * get field by fieldId
+ * @param fieldId
+ */
 function getField(fieldId) {
     for (let field of board.fields) {
         if (field.id === fieldId) {
@@ -504,6 +650,11 @@ function getField(fieldId) {
     }
 }
 
+/**
+ * get piece from given field.
+ * @param currentField
+ * @returns {null|*|undefined}
+ */
 function getPiece(currentField) {
     for (let field of board.fields) {
 
@@ -513,6 +664,11 @@ function getPiece(currentField) {
     }
 }
 
+/**
+ * get field by x,y coordinates.
+ * @param x
+ * @param y
+ */
 function getFieldByXY(x, y) {
     for (let field of board.fields) {
         if (field.x === x && field.y === y) {
