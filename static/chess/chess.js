@@ -1,22 +1,22 @@
 'use strict';
 
 const positions = {
-    "a8": new Piece('rook', 'black', 'black-rook.svg'),
-    "b8": new Piece('knight', 'black', "black-knight.svg"),
-    "c8": new Piece('bishop', 'black', "black-bishop.svg"),
-    "d8": new Piece('queen', 'black', "black-queen.svg"),
-    "e8": new Piece('king', 'black', "black-king.svg"),
-    "f8": new Piece('bishop', 'black', "black-bishop.svg"),
-    "g8": new Piece('knight', 'black', "black-knight.svg"),
-    "h8": new Piece('rook', 'black', "black-rook.svg"),
-    "a1": new Piece('rook', 'white', "white-rook.svg"),
-    "b1": new Piece('knight', 'white', "white-knight.svg"),
-    "c1": new Piece('bishop', 'white', "white-bishop.svg"),
-    "d1": new Piece('queen', 'white', "white-queen.svg"),
-    "e1": new Piece('king', 'white', "white-king.svg"),
-    "f1": new Piece('bishop', 'white', "white-bishop.svg"),
-    "g1": new Piece('knight', 'white', "white-knight.svg"),
-    "h1": new Piece('rook', 'white', "white-rook.svg")
+    "a8": new Piece('rook', 'black', 'black-rook.svg', false),
+    "b8": new Piece('knight', 'black', "black-knight.svg", false),
+    "c8": new Piece('bishop', 'black', "black-bishop.svg", false),
+    "d8": new Piece('queen', 'black', "black-queen.svg", false),
+    "e8": new Piece('king', 'black', "black-king.svg", false),
+    "f8": new Piece('bishop', 'black', "black-bishop.svg", false),
+    "g8": new Piece('knight', 'black', "black-knight.svg", false),
+    "h8": new Piece('rook', 'black', "black-rook.svg", false),
+    "a1": new Piece('rook', 'white', "white-rook.svg", false),
+    "b1": new Piece('knight', 'white', "white-knight.svg", false),
+    "c1": new Piece('bishop', 'white', "white-bishop.svg", false),
+    "d1": new Piece('queen', 'white', "white-queen.svg", false),
+    "e1": new Piece('king', 'white', "white-king.svg", false),
+    "f1": new Piece('bishop', 'white', "white-bishop.svg", false),
+    "g1": new Piece('knight', 'white', "white-knight.svg", false),
+    "h1": new Piece('rook', 'white', "white-rook.svg", false)
 };
 
 const directions = {
@@ -41,10 +41,11 @@ let kingMoved = false;
 let rightRookMoved = false;
 let leftRookMoved = false;
 
-function Piece(type, color, svg) {
+function Piece(type, color, svg, moved) {
     this.type = type;
     this.color = color;
     this.svg = svg;
+    this.moved = moved;
 }
 
 function Field(piece, id, x, y) {
@@ -80,7 +81,7 @@ function newGame() {
             if (i === 2 || i === 7) {
                 let color = i === 7 ? 'black' : 'white';
                 let svg = i === 7 ? 'black-pawn.svg' : 'white-pawn.svg';
-                piece = new Piece('pawn', color, svg);
+                piece = new Piece('pawn', color, svg, false);
             }
 
             let field = new Field(piece, letter + i, j, i);
@@ -208,10 +209,11 @@ function flip() {
  * @param targetField field to move to.
  */
 function move(sourceField, targetField) {
-    let source = document.getElementById(sourceField);
+    let source = document.getElementById(sourceField.id);
     let piece = source.querySelector('.piece');
-    let target = document.getElementById(targetField);
+    let target = document.getElementById(targetField.id);
     target.appendChild(piece);
+    updateField(sourceField.id, targetField.id);
 }
 
 /**
@@ -314,6 +316,8 @@ function dragDrop() {
         field.piece = null;
     }
     let oldFieldId = draggedElement.parentElement.id;
+    let movedPiece = getField(oldFieldId).piece;
+    movedPiece.moved = true;
     this.classList.remove('hovered');
     this.classList.remove('take');
     draggedElement.id = this.id + "-piece";
@@ -321,7 +325,7 @@ function dragDrop() {
     draggedElement.classList.remove('dragged');
     clearDragAndDropProps();
 
-    resolveDrop(oldFieldId, this);
+    resolveDrop(oldFieldId, this.id);
 
 }
 
@@ -330,9 +334,8 @@ function dragDrop() {
  * @param oldfieldId old field of moved piece.
  * @param newField field the piece moved to.
  */
-function resolveDrop(oldfieldId, newField) {
-    updateField(oldfieldId, newField.id);
-    let colorToCheck = getField(newField.id).piece.color;
+function resolveDrop(oldfieldId, newFieldId) {
+    updateField(oldfieldId, newFieldId);
 
 }
 
@@ -504,7 +507,7 @@ function getAllFieldsWithPiecesByColor(color) {
  */
 function getKnightMoves(field) {
     let legalFields = [];
-    let vectors = [[2, -1], [2, 1], [-1, 2], [1, 2], [-1, -2], [1, -2], [-2, 1], [-2, 1]];
+    let vectors = [[2, -1], [2, 1], [-1, 2], [1, 2], [-1, -2], [1, -2], [-2, 1], [-2, -1]];
 
     for (let vector of vectors) {
         let nextField = getFieldByXY(field.x + vector[0], field.y + vector[1]);
@@ -550,8 +553,9 @@ function getPawnMoves(field) {
     return legalMoves.filter(legalField => filterMoves(legalField));
 }
 
-function castleRight(kingField) {
-    let rookField = getFieldByXY(kingField.x + 3, kingField.y);
+function castleRight(kingFieldId) {
+    let kingField = getField(kingFieldId);
+    let rookField = getFieldByXY(kingField.x + 1, kingField.y);
     move(rookField, getFieldByXY(rookField.x - 2, rookField.y));
 }
 
@@ -592,22 +596,24 @@ function getKingMoves(field) {
     return legalMoves.filter(field => !fieldHasCheck(field, color));
 }
 
-function checkForCastle(field) {
+function checkForCastle(kingField) {
     let legalMoves = [];
-    let fieldx1 = getFieldByXY(field.x + 1, field.y);
-    let fieldx2 = getFieldByXY(field.x + 2, field.y);
-    let fieldLeftX1 = getFieldByXY(field.x - 1, field.y);
-    let fieldLeftX2 = getFieldByXY(field.x - 2, field.y);
-    let fieldLeftX3 = getFieldByXY(field.x - 3, field.y);
-    if (!kingMoved) {
-        if (fieldx1.containsPiece() && !fieldx2.containsPiece() && !rightRookMoved) {
-            fieldx2.addEventListener('dropped', function (field) {
-                castleRight(field);
+    let rookRight = getFieldByXY(kingField.x - 4, kingField.y).piece;
+    let rookLeft = getFieldByXY(kingField.x  + 3, kingField.y).piece;
+    let fieldx1 = getFieldByXY(kingField.x + 1, kingField.y);
+    let fieldx2 = getFieldByXY(kingField.x + 2, kingField.y);
+    let fieldLeftX1 = getFieldByXY(kingField.x - 1, kingField.y);
+    let fieldLeftX2 = getFieldByXY(kingField.x - 2, kingField.y);
+    let fieldLeftX3 = getFieldByXY(kingField.x - 3, kingField.y);
+    if (!kingField.piece.moved) {
+        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && !rookRight.moved) {
+            document.getElementById(fieldx2.id).addEventListener('drop', function (event) {
+                castleRight(event.currentTarget.id);
             });
             legalMoves.push(fieldx2);
         }
-        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && !leftRookMoved) {
-            fieldx2.addEventListener('dropped', function (field) {
+        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && !rookLeft.moved) {
+            document.getElementById(fieldx2.id).addEventListener('drop', function (field) {
                 castleLeft(field);
             });
             legalMoves.push(fieldLeftX2);
