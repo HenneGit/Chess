@@ -37,7 +37,7 @@ const directions = {
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 let board = null;
-
+let moveTracker = [];
 
 function Piece(type, color, svg, moveNumber) {
     this.type = type;
@@ -372,12 +372,11 @@ function clearDragAndDropProps() {
  */
 function updateField(oldFieldId, newFieldId) {
     let oldField = getField(oldFieldId);
-
     let piece = getPiece(oldField);
     oldField.piece = null;
-    console.log(piece);
     getField(newFieldId).piece = piece;
-    console.log(board);
+    moveTracker.push([oldFieldId, newFieldId]);
+    console.log(moveTracker);
 }
 
 /**
@@ -567,12 +566,14 @@ function getPawnMoves(field) {
  * @param legalMoves current legal moves to add en passant field to.
  */
 function  getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
-        if (enemyField !== undefined) {
+        let lastMove = moveTracker[moveTracker.length -1];
+        if (enemyField !== undefined && lastMove !== undefined) {
         let piece = enemyField.piece;
         if (piece !== null) {
 
             //let fieldRight = getFieldByXY(field.x + 1, field.y);
-            if (piece.type === 'pawn' && piece.moveNumber === 1 && piece.color !== currentField.piece.color) {
+            if (piece.type === 'pawn' && piece.moveNumber === 1 && piece.color !== currentField.piece.color
+                && lastMove[1] === enemyField.id && (enemyField.y === 4 || enemyField.y === 5)) {
                 let domField = document.getElementById(captureMoveField.id);
                     domField.classList.add('take');
                 let enemeyDomField = document.getElementById(enemyField.id);
