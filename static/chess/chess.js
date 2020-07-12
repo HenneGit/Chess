@@ -1,22 +1,22 @@
 'use strict';
 
 const positions = {
-    "a8": new Piece('rook', 'black', 'black-rook.svg', false),
-    "b8": new Piece('knight', 'black', "black-knight.svg", false),
-    "c8": new Piece('bishop', 'black', "black-bishop.svg", false),
-    "d8": new Piece('queen', 'black', "black-queen.svg", false),
-    "e8": new Piece('king', 'black', "black-king.svg", false),
-    "f8": new Piece('bishop', 'black', "black-bishop.svg", false),
-    "g8": new Piece('knight', 'black', "black-knight.svg", false),
-    "h8": new Piece('rook', 'black', "black-rook.svg", false),
-    "a1": new Piece('rook', 'white', "white-rook.svg", false),
-    "b1": new Piece('knight', 'white', "white-knight.svg", false),
-    "c1": new Piece('bishop', 'white', "white-bishop.svg", false),
-    "d1": new Piece('queen', 'white', "white-queen.svg", false),
-    "e1": new Piece('king', 'white', "white-king.svg", false),
-    "f1": new Piece('bishop', 'white', "white-bishop.svg", false),
-    "g1": new Piece('knight', 'white', "white-knight.svg", false),
-    "h1": new Piece('rook', 'white', "white-rook.svg", false)
+    "a8": new Piece('rook', 'black', 'black-rook.svg', 0),
+    "b8": new Piece('knight', 'black', "black-knight.svg", 0),
+    "c8": new Piece('bishop', 'black', "black-bishop.svg", 0),
+    "d8": new Piece('queen', 'black', "black-queen.svg", 0),
+    "e8": new Piece('king', 'black', "black-king.svg", 0),
+    "f8": new Piece('bishop', 'black', "black-bishop.svg", 0),
+    "g8": new Piece('knight', 'black', "black-knight.svg", 0),
+    "h8": new Piece('rook', 'black', "black-rook.svg", 0),
+    "a1": new Piece('rook', 'white', "white-rook.svg", 0),
+    "b1": new Piece('knight', 'white', "white-knight.svg", 0),
+    "c1": new Piece('bishop', 'white', "white-bishop.svg", 0),
+    "d1": new Piece('queen', 'white', "white-queen.svg", 0),
+    "e1": new Piece('king', 'white', "white-king.svg", 0),
+    "f1": new Piece('bishop', 'white', "white-bishop.svg", 0),
+    "g1": new Piece('knight', 'white', "white-knight.svg", 0),
+    "h1": new Piece('rook', 'white', "white-rook.svg", 0)
 };
 
 const directions = {
@@ -37,15 +37,13 @@ const directions = {
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
 let board = null;
-let kingMoved = false;
-let rightRookMoved = false;
-let leftRookMoved = false;
 
-function Piece(type, color, svg, moved) {
+
+function Piece(type, color, svg, moveNumber) {
     this.type = type;
     this.color = color;
     this.svg = svg;
-    this.moved = moved;
+    this.moveNumber = moveNumber;
 }
 
 function Field(piece, id, x, y) {
@@ -188,6 +186,7 @@ function appendAxis(axis, hasLetters) {
     }
 
 }
+
 /**
  * mirror the board.
  */
@@ -310,14 +309,11 @@ function dragDrop() {
 
     let field = getField(this.id);
     if (field.containsPiece()) {
-        let pieceColor = field.piece.color;
-        let domPiece = document.getElementById(this.id + "-piece");
-        document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
-        field.piece = null;
+       capturePiece(field);
     }
     let oldFieldId = draggedElement.parentElement.id;
     let movedPiece = getField(oldFieldId).piece;
-    movedPiece.moved = true;
+    movedPiece.moveNumber += 1;
     this.classList.remove('hovered');
     this.classList.remove('take');
     draggedElement.id = this.id + "-piece";
@@ -329,6 +325,13 @@ function dragDrop() {
 
 }
 
+function capturePiece(field) {
+    let pieceColor = field.piece.color;
+    let domPiece = document.getElementById(field.id + "-piece");
+    document.getElementById(pieceColor + "-graveyard").appendChild(domPiece);
+    field.piece = null;
+}
+
 /**
  * updates board after movement and test if a check is given.
  * @param oldfieldId old field of moved piece.
@@ -336,7 +339,6 @@ function dragDrop() {
  */
 function resolveDrop(oldfieldId, newFieldId) {
     updateField(oldfieldId, newFieldId);
-
 }
 
 /**
@@ -383,14 +385,14 @@ function updateField(oldFieldId, newFieldId) {
  * @param startField the field to start from.
  * @param depth the amount of tiles to scan.
  * @param movingType straight or diagonal.
- * @param strikePeace if true a discovered enemy piece is marked as strikeable.
+ * @param capturePeace if true a discovered enemy piece is marked as captureable.
  * @returns {[fields]} all legal fields for the given piece.
  */
-function getLegalMoves(startField, depth, movingType, strikePeace) {
+function getLegalMoves(startField, depth, movingType, capturePeace) {
     let fields = [];
     for (let offSet in movingType) {
         let offSetXY = movingType[offSet];
-        fields.push(...getMovement(startField, depth, offSetXY[0], offSetXY[1], strikePeace));
+        fields.push(...getMovement(startField, depth, offSetXY[0], offSetXY[1], capturePeace));
     }
     return fields
 }
@@ -403,10 +405,10 @@ function getLegalMoves(startField, depth, movingType, strikePeace) {
  * @param depth the amount of tiles to walk into a certain direction.
  * @param offsetX direction x.
  * @param offSetY direction y.
- * @param strikePeace if true a discovered enemy piece is marked as strikeable.
+ * @param capturePeace if true a discovered enemy piece is marked as captureable.
  * @returns {[]} all legal fields.
  */
-function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
+function getMovement(startField, depth, offsetX, offSetY, capturePeace) {
 
     let fields = [];
     let containsPieceOrIsInvalid = false;
@@ -417,7 +419,7 @@ function getMovement(startField, depth, offsetX, offSetY, strikePeace) {
                 containsPieceOrIsInvalid = true;
             } else if (nextField.containsPiece()) {
                 let nextFieldPiece = nextField.piece;
-                if (nextFieldPiece.color !== startField.piece.color && strikePeace) {
+                if (nextFieldPiece.color !== startField.piece.color && capturePeace) {
                     fields.push(nextField);
                 }
                 containsPieceOrIsInvalid = true;
@@ -534,23 +536,55 @@ function getPawnMoves(field) {
     } else {
         legalMoves.push(...getLegalMoves(field, 1, straight, false));
     }
-    let fieldLeft = getFieldByXY(field.x + 1, field.y + yOffset);
-    let fieldRight = getFieldByXY(field.x - 1, field.y + yOffset);
+    let fieldUpRight = getFieldByXY(field.x + 1, field.y + yOffset);
+    let fieldUpLeft = getFieldByXY(field.x - 1, field.y + yOffset);
 
-    if (fieldLeft !== undefined && fieldLeft.containsPiece() && fieldLeft.piece.color !== color) {
+    if (fieldUpRight !== undefined && fieldUpRight.containsPiece() && fieldUpRight.piece.color !== color) {
 
-        legalMoves.push(fieldLeft);
+        legalMoves.push(fieldUpRight);
 
     }
-    if (fieldRight !== undefined && fieldRight.containsPiece() && fieldRight.piece.color !== color) {
+    if (fieldUpLeft !== undefined && fieldUpLeft.containsPiece() && fieldUpLeft.piece.color !== color) {
 
-        legalMoves.push(fieldRight);
+        legalMoves.push(fieldUpLeft);
 
     }
     let filterMoves = function (legalField) {
         return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
     };
+    let fieldRight = getFieldByXY(field.x + 1, field.y);
+    let fieldLeft = getFieldByXY(field.x - 1, field.y);
+    getEnPassant(fieldRight, field, fieldUpRight, legalMoves);
+    getEnPassant(fieldLeft, field, fieldUpLeft, legalMoves);
     return legalMoves.filter(legalField => filterMoves(legalField));
+}
+
+/**
+ * check if en passant is valid and add according move.
+ * @param enemyField the field to the left or righ.
+ * @param currentField field of current pawn.
+ * @param captureMoveField Field to move to when capturing.
+ * @param legalMoves current legal moves to add en passant field to.
+ */
+function  getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
+        if (enemyField !== undefined) {
+        let piece = enemyField.piece;
+        if (piece !== null) {
+
+            //let fieldRight = getFieldByXY(field.x + 1, field.y);
+            if (piece.type === 'pawn' && piece.moveNumber === 1 && piece.color !== currentField.piece.color) {
+                let domField = document.getElementById(captureMoveField.id);
+                    domField.classList.add('take');
+                let enemeyDomField = document.getElementById(enemyField.id);
+                    enemeyDomField.classList.add('take');
+                legalMoves.push(captureMoveField);
+
+                domField.addEventListener('drop', function (event) {
+                    capturePiece(enemyField);
+                })
+            }
+        }
+    }
 }
 
 function castleRight(kingFieldId) {
@@ -599,22 +633,22 @@ function getKingMoves(field) {
 function checkForCastle(kingField) {
     let legalMoves = [];
     let rookRight = getFieldByXY(kingField.x - 4, kingField.y).piece;
-    let rookLeft = getFieldByXY(kingField.x  + 3, kingField.y).piece;
+    let rookLeft = getFieldByXY(kingField.x + 3, kingField.y).piece;
     let fieldx1 = getFieldByXY(kingField.x + 1, kingField.y);
     let fieldx2 = getFieldByXY(kingField.x + 2, kingField.y);
     let fieldLeftX1 = getFieldByXY(kingField.x - 1, kingField.y);
     let fieldLeftX2 = getFieldByXY(kingField.x - 2, kingField.y);
     let fieldLeftX3 = getFieldByXY(kingField.x - 3, kingField.y);
     if (!kingField.piece.moved) {
-        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && !rookRight.moved) {
+        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && rookRight.moveNumber === 0) {
             document.getElementById(fieldx2.id).addEventListener('drop', function (event) {
                 castleRight(event.currentTarget.id);
             });
             legalMoves.push(fieldx2);
         }
-        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && !rookLeft.moved) {
+        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && rookLeft.moveNumber === 0) {
             document.getElementById(fieldx2.id).addEventListener('drop', function (field) {
-                castleLeft(field);
+                castleLeft(event.currentTarget.id);
             });
             legalMoves.push(fieldLeftX2);
         }
