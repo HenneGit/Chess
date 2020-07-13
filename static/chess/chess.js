@@ -309,7 +309,7 @@ function dragDrop() {
 
     let field = getField(this.id);
     if (field.containsPiece()) {
-       capturePiece(field);
+        capturePiece(field);
     }
     let oldFieldId = draggedElement.parentElement.id;
     let movedPiece = getField(oldFieldId).piece;
@@ -322,6 +322,7 @@ function dragDrop() {
     clearDragAndDropProps();
 
     resolveDrop(oldFieldId, this.id);
+    displayNotation();
 
 }
 
@@ -565,9 +566,9 @@ function getPawnMoves(field) {
  * @param captureMoveField Field to move to when capturing.
  * @param legalMoves current legal moves to add en passant field to.
  */
-function  getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
-        let lastMove = moveTracker[moveTracker.length -1];
-        if (enemyField !== undefined && lastMove !== undefined) {
+function getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
+    let lastMove = moveTracker[moveTracker.length - 1];
+    if (enemyField !== undefined && lastMove !== undefined) {
         let piece = enemyField.piece;
         if (piece !== null) {
 
@@ -575,9 +576,9 @@ function  getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
             if (piece.type === 'pawn' && piece.moveNumber === 1 && piece.color !== currentField.piece.color
                 && lastMove[1] === enemyField.id && (enemyField.y === 4 || enemyField.y === 5)) {
                 let domField = document.getElementById(captureMoveField.id);
-                    domField.classList.add('take');
+                domField.classList.add('take');
                 let enemeyDomField = document.getElementById(enemyField.id);
-                    enemeyDomField.classList.add('take');
+                enemeyDomField.classList.add('take');
                 legalMoves.push(captureMoveField);
 
                 domField.addEventListener('drop', function (event) {
@@ -588,9 +589,8 @@ function  getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
     }
 }
 
-function castleRight(kingFieldId) {
-    let kingField = getField(kingFieldId);
-    let rookField = getFieldByXY(kingField.x + 1, kingField.y);
+function castleRight(kingField) {
+    let rookField = getFieldByXY(kingField.x + 3, kingField.y);
     move(rookField, getFieldByXY(rookField.x - 2, rookField.y));
 }
 
@@ -631,8 +631,14 @@ function getKingMoves(field) {
     return legalMoves.filter(field => !fieldHasCheck(field, color));
 }
 
+/**
+ * checks if castling is possbile and if so sets up event listeners on the fields and returns them as legal moves.
+ * @param kingField the field the king is on.
+ * @returns {[]} legalMoves
+ */
 function checkForCastle(kingField) {
     let legalMoves = [];
+    let color = kingField.piece.color === 'white' ? 'black' : 'white';
     let rookRight = getFieldByXY(kingField.x - 4, kingField.y).piece;
     let rookLeft = getFieldByXY(kingField.x + 3, kingField.y).piece;
     let fieldx1 = getFieldByXY(kingField.x + 1, kingField.y);
@@ -640,21 +646,48 @@ function checkForCastle(kingField) {
     let fieldLeftX1 = getFieldByXY(kingField.x - 1, kingField.y);
     let fieldLeftX2 = getFieldByXY(kingField.x - 2, kingField.y);
     let fieldLeftX3 = getFieldByXY(kingField.x - 3, kingField.y);
-    if (!kingField.piece.moved) {
-        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && rookRight.moveNumber === 0) {
-            document.getElementById(fieldx2.id).addEventListener('drop', function (event) {
-                castleRight(event.currentTarget.id);
+    if (kingField.piece.moveNumber === 0) {
+        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && rookRight.moveNumber === 0 && !fieldHasCheck(fieldx1, color)
+            && !fieldHasCheck(fieldx2, color)) {
+            document.getElementById(fieldx2.id).addEventListener('drop', function () {
+                castleRight(kingField);
             });
             legalMoves.push(fieldx2);
         }
-        if (fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && rookLeft.moveNumber === 0) {
-            document.getElementById(fieldx2.id).addEventListener('drop', function (field) {
-                castleLeft(event.currentTarget.id);
+        if (!fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && rookLeft.moveNumber === 0
+            && !fieldHasCheck(fieldLeftX1, color) && !fieldHasCheck(fieldLeftX2, color) && !fieldHasCheck(fieldLeftX3, color)) {
+            document.getElementById(fieldLeftX2.id).addEventListener('drop', function () {
+                castleLeft(kingField);
             });
             legalMoves.push(fieldLeftX2);
         }
     }
     return legalMoves;
+}
+
+function displayNotation() {
+    let details = document.getElementById('details');
+    let notationDiv = document.createElement('div');
+    notationDiv.id = 'notationDiv';
+    let table = document.createElement('table');
+    let blackTh = document.createElement('th');
+    let whiteTh = document.createElement('th');
+    let tr = document.createElement('tr');
+    table.append(blackTh, whiteTh)
+    for (let i = 0; i < moveTracker.length; i++) {
+
+        let td = document.createElement('td');
+        td.innerText = moveTracker[i][1];
+        if (i % 2 === 0) {
+            tr = document.createElement('tr');
+            tr.append(td);
+        } else {
+            tr.append(td);
+        }
+    table.append(tr);
+    }
+    notationDiv.append(table);
+    details.append(notationDiv);
 }
 
 /**
