@@ -637,22 +637,25 @@ function getKingMoves(field) {
  * @returns {[]} legalMoves
  */
 function checkForCastle(kingField) {
-    let legalMoves = [];
-    let color = kingField.piece.color === 'white' ? 'black' : 'white';
-    let rookRight = getFieldByXY(kingField.x - 4, kingField.y).piece;
-    let rookLeft = getFieldByXY(kingField.x + 3, kingField.y).piece;
-    let fieldx1 = getFieldByXY(kingField.x + 1, kingField.y);
-    let fieldx2 = getFieldByXY(kingField.x + 2, kingField.y);
-    let fieldLeftX1 = getFieldByXY(kingField.x - 1, kingField.y);
-    let fieldLeftX2 = getFieldByXY(kingField.x - 2, kingField.y);
-    let fieldLeftX3 = getFieldByXY(kingField.x - 3, kingField.y);
     if (kingField.piece.moveNumber === 0) {
-        if (!fieldx1.containsPiece() && !fieldx2.containsPiece() && rookRight.moveNumber === 0 && !fieldHasCheck(fieldx1, color)
-            && !fieldHasCheck(fieldx2, color)) {
-            document.getElementById(fieldx2.id).addEventListener('drop', function () {
+
+        let legalMoves = [];
+        let color = kingField.piece.color === 'white' ? 'black' : 'white';
+        let rookRight = getFieldByXY(kingField.x - 4, kingField.y).piece;
+        let rookLeft = getFieldByXY(kingField.x + 3, kingField.y).piece;
+
+        let fieldRightX1 = getFieldByXY(kingField.x + 1, kingField.y);
+        let fieldRightX2 = getFieldByXY(kingField.x + 2, kingField.y);
+        let fieldLeftX1 = getFieldByXY(kingField.x - 1, kingField.y);
+        let fieldLeftX2 = getFieldByXY(kingField.x - 2, kingField.y);
+        let fieldLeftX3 = getFieldByXY(kingField.x - 3, kingField.y);
+
+        if (!fieldRightX1.containsPiece() && !fieldRightX2.containsPiece() && rookRight.moveNumber === 0 && !fieldHasCheck(fieldRightX1, color)
+            && !fieldHasCheck(fieldRightX2, color)) {
+            document.getElementById(fieldRightX2.id).addEventListener('drop', function () {
                 castleRight(kingField);
             });
-            legalMoves.push(fieldx2);
+            legalMoves.push(fieldRightX2);
         }
         if (!fieldLeftX1.containsPiece() && !fieldLeftX2.containsPiece() && !fieldLeftX3.containsPiece() && rookLeft.moveNumber === 0
             && !fieldHasCheck(fieldLeftX1, color) && !fieldHasCheck(fieldLeftX2, color) && !fieldHasCheck(fieldLeftX3, color)) {
@@ -661,19 +664,24 @@ function checkForCastle(kingField) {
             });
             legalMoves.push(fieldLeftX2);
         }
+        return legalMoves;
     }
-    return legalMoves;
 }
 
 function displayNotation() {
     let details = document.getElementById('details');
+    while (details.firstChild) {
+        details.removeChild(details.firstChild);
+    }
     let notationDiv = document.createElement('div');
     notationDiv.id = 'notationDiv';
     let table = document.createElement('table');
-    let blackTh = document.createElement('th');
+    let  blackTh = document.createElement('th');
+    blackTh.innerText = "Black";
     let whiteTh = document.createElement('th');
+    whiteTh.innerText = 'White';
     let tr = document.createElement('tr');
-    table.append(blackTh, whiteTh)
+    table.append(whiteTh, blackTh);
     for (let i = 0; i < moveTracker.length; i++) {
 
         let td = document.createElement('td');
@@ -684,7 +692,7 @@ function displayNotation() {
         } else {
             tr.append(td);
         }
-    table.append(tr);
+        table.append(tr);
     }
     notationDiv.append(table);
     details.append(notationDiv);
