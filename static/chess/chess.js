@@ -347,20 +347,6 @@ function dragLeave(event) {
 }
 
 /**
- * triggered when a piece was dropped on a field.
- */
-function dragDrop() {
-    let draggedElement = document.querySelector('.dragged');
-    let oldFieldId = draggedElement.parentElement.id;
-    let movedPiece = getField(oldFieldId).piece;
-    movedPiece.moveNumber += 1;
-    resolveDrop(oldFieldId, this.id);
-    createBoard();
-
-}
-
-
-/**
  * updates board after movement and test if a check is given.
  * @param oldfieldId old field of moved piece.
  * @param newFieldId field the piece moved to.
@@ -368,6 +354,23 @@ function dragDrop() {
 function resolveDrop(oldFieldId, newFieldId) {
     updateField(oldFieldId, newFieldId);
     moveTracker.push([oldFieldId, newFieldId]);
+}
+
+
+/**
+ * triggered when a piece was dropped on a field.
+ */
+function dragDrop() {
+    let draggedElement = document.querySelector('.dragged');
+    if (draggedElement !== null) {
+
+        let oldFieldId = draggedElement.parentElement.id;
+        let movedPiece = getField(oldFieldId).piece;
+        movedPiece.moveNumber += 1;
+        resolveDrop(oldFieldId, this.id);
+    }
+    createBoard();
+
 }
 
 
@@ -461,6 +464,7 @@ function getMovement(startField, depth, offsetX, offSetY, capturePeace) {
  */
 function fieldHasCheck(fieldToCheck, color) {
     let enemyFields = getAllFieldsWithPiecesByColor(color);
+    //schließt felder mit eigenen Figuren aus. Deckung wird nicht erkannt.
     let allLegalMoves = getLegalMovesForAllPieces(enemyFields);
     for (let field of allLegalMoves) {
         if (field === fieldToCheck) {
@@ -604,28 +608,53 @@ function getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
                 enemeyDomField.classList.add('take');
                 legalMoves.push(captureMoveField);
                 domField.removeEventListener('drop', dragDrop);
-                domField.addEventListener('drop', function () {
-                    captureMoveField.piece = currentField.piece;
-                    currentField.piece = null;
-                    board.graveyard.push(enemyField.piece);
-                    enemyField.piece = null;
-                    resolveDrop(currentField.id, captureMoveField.id );
-                    createBoard();
-
-                })
+                domField.addEventListener('drop', function (event) {
+                    executeEnpassant(enemyField, currentField, captureMoveField, event)
+                });
             }
         }
     }
 }
 
+function executeEnpassant(enemyField, currentField, captureMoveField, event) {
+
+    let movedPiece = getField(currentField.id).piece;
+    movedPiece.moveNumber += 1;
+    captureMoveField.piece = movedPiece;
+    let captureField = getField(enemyField.id);
+    currentField.piece = null;
+    board.graveyard.push(captureField.piece);
+    captureField.piece = null;
+    resolveDrop(currentField.id, captureMoveField.id);
+    createBoard();
+
+}
+
 function castleRight(kingField) {
     let rookField = getFieldByXY(kingField.x + 3, kingField.y);
-    move(rookField, getFieldByXY(rookField.x - 2, rookField.y));
+    getField(kingField.id).piece.moveNumber += 1;
+    let rookTargetField = getFieldByXY(kingField.x + 1, kingField.y);
+
+    rookTargetField.piece = rookField.piece;
+    rookField.piece = null;
+    let moveTargetKing = getFieldByXY(kingField.x + 2, kingField.y);
+
+    resolveDrop(kingField.id, moveTargetKing.id);
+    createBoard();
+
 }
 
 function castleLeft(kingField) {
     let rookField = getFieldByXY(kingField.x - 4, kingField.y);
-    move(rookField, getFieldByXY(rookField.x + 3, rookField.y));
+    getField(kingField.id).piece.moveNumber += 1;
+    let rookTargetField = getFieldByXY(kingField.x - 1, kingField.y);
+
+    rookTargetField.piece = rookField.piece;
+    rookField.piece = null;
+    let moveTargetKing = getFieldByXY(kingField.x - 2, kingField.y);
+
+    resolveDrop(kingField.id, moveTargetKing.id);
+    createBoard();
 }
 
 function getBishopMoves(field) {
@@ -647,17 +676,28 @@ function getQueenMoves(field) {
     return legalMoves;
 }
 
-function getKingMoves(field) {
+function getKingMoves(currentField) {
     const {straight} = directions;
     const {diagonal} = directions;
-    let color = field.piece.color === 'white' ? "black" : "white";
+    let color = currentField.piece.color === 'white' ? "black" : "white";
     let legalMoves = [];
-    legalMoves.push(...getLegalMoves(field, 1, straight));
-    legalMoves.push(...getLegalMoves(field, 1, diagonal));
-    if (field.piece.moveNumber === 0) {
-        legalMoves.push(...checkForCastle(field));
+    legalMoves.push(...getLegalMoves(currentField, 1, straight, true));
+    legalMoves.push(...getLegalMoves(currentField, 1, diagonal, true));
+    if (currentField.piece.moveNumber === 0) {
+        legalMoves.push(...checkForCastle(currentField));
     }
-    return legalMoves.filter(field => !fieldHasCheck(field, color));
+
+    let withoutCheck = legalMoves.filter(field => fieldHasCheck(field, color));
+
+    //filter moves with covered enemy pieces on it.
+    return withoutCheck.filter(field => {
+        updateField(currentField.id, field.id);
+        let hasCheck = checkForCheck(color);
+        const boardCopy = jsonCopy(boardHistory.pop());
+        board = boardCopy;
+        return !hasCheck;
+    });
+
 }
 
 /**
