@@ -476,7 +476,8 @@ function fieldHasCheck(fieldToCheck, color) {
 
 /**
  * get all legal moves for all pieces currently on board.
- * @param fields fields with pieces.
+ * @param fields fields with piece
+/**s.
  * @returns {[]} all legal moves for all pieces currently on board.
  */
 function getLegalMovesForAllPieces(fields) {
@@ -502,14 +503,13 @@ function getLegalMovesForAllPieces(fields) {
 function checkForCheck(color) {
     let allFieldsWithColor = getAllFieldsWithPiecesByColor(color);
     allFieldsWithColor.filter(field => field.piece.type !== 'king');
-    let legalMoves = getLegalMovesForAllPieces(getAllFieldsWithPiecesByColor(color));
+    let legalMoves = getLegalMovesForAllPieces(allFieldsWithColor);
     let containsKing = legalMoves.filter(field => {
         if (containsPiece(field)) {
-
             return field.piece.type === 'king';
         }
     });
-    return containsKing.length === 1;
+    return containsKing.length > 0;
 }
 
 /**
@@ -687,7 +687,7 @@ function getKingMoves(currentField) {
         legalMoves.push(...checkForCastle(currentField));
     }
 
-    let withoutCheck = legalMoves.filter(field => fieldHasCheck(field, color));
+    let withoutCheck = legalMoves.filter(field => !fieldHasCheck(field, color));
 
     //filter moves with covered enemy pieces on it.
     return withoutCheck.filter(field => {
