@@ -19,6 +19,13 @@ const positions = {
     "h1": new Piece('rook', 'white', "white-rook.svg", 0)
 };
 
+const piecePicker = function (color) {
+    return [new Piece('bishop', color, color + "-bishop.svg", 0),
+        new Piece('knight', color, color + "-knight.svg", 0),
+        new Piece('rook', color, color + "-rook.svg", 0),
+        new Piece('queen', color, color + "-queen.svg", 0)];
+};
+
 const directions = {
     diagonal: {
         upLeft: [-1, 1],
@@ -477,7 +484,7 @@ function fieldHasCheck(fieldToCheck, color) {
 /**
  * get all legal moves for all pieces currently on board.
  * @param fields fields with piece
-/**s.
+ /**s.
  * @returns {[]} all legal moves for all pieces currently on board.
  */
 function getLegalMovesForAllPieces(fields) {
@@ -574,14 +581,48 @@ function getPawnMoves(field) {
 
     }
     //filter behind pawn according to color.
-    let filterMoves = function (legalField) {
-        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
-    };
+    //let filterMoves = function (legalField) {};
     let fieldRight = getFieldByXY(field.x + 1, field.y);
     let fieldLeft = getFieldByXY(field.x - 1, field.y);
     getEnPassant(fieldRight, field, fieldUpRight, legalMoves);
     getEnPassant(fieldLeft, field, fieldUpLeft, legalMoves);
-    return legalMoves.filter(legalField => filterMoves(legalField));
+    legalMoves.filter(legalField => function () {
+        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
+    });
+    for (let legalMove of legalMoves) {
+        if (legalMove.hasOwnProperty('y')) {
+            if (legalMove.y === 1 || legalMove.y === 8) {
+                document.getElementById(legalMove.id).addEventListener('drop', function () {
+                    createPiecePicker(legalMove, legalMove.piece.color)
+                })
+            }
+        }
+    }
+    return legalMoves;
+}
+
+function createPiecePicker(field, color) {
+    let pieceArray = piecePicker(color);
+    let container = document.createElement('div');
+    let contentDiv = document.getElementById('content-div');
+    container.id = 'piece-picker-box';
+    for (let piece of pieceArray) {
+        if (piece.hasOwnProperty('svg')) {
+            field.piece = piece;
+            let pieceBox = document.createElement('div');
+            let imgDiv = createImgFromField(field, true);
+            pieceBox.appendChild(imgDiv);
+            piece.addEventListener('click', piecePicked);
+            pieceBox.classList.add('piece-in-piece-picker');
+            container.appendChild(pieceBox);
+        }
+    }
+    contentDiv.append(container);
+}
+
+
+function piecePicked() {
+
 }
 
 /**
