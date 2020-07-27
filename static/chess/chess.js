@@ -26,6 +26,8 @@ const piecePicker = function (color) {
         new Piece('queen', color, color + "-queen.svg", 0)];
 };
 
+let pieceWasPicked = false;
+
 const directions = {
     diagonal: {
         upLeft: [-1, 1],
@@ -197,7 +199,6 @@ function createImgFromField(field) {
 function getPiecesFromGraveyard(color) {
     let capturedPieces = board.graveyard;
     if (capturedPieces !== null || true) {
-
         capturedPieces = capturedPieces.filter(piece => piece.color === color);
         console.log(capturedPieces);
         return capturedPieces;
@@ -267,6 +268,7 @@ function dragStart() {
     setTimeout(() => this.classList.add('invisible'), 0);
     let fieldId = this.parentElement.id;
     let currentField = getField(fieldId);
+    let piece = currentField.piece;
     let color = getOppositeColor(currentField.piece.color);
     let legalFields = getMovesForPiece(currentField);
     console.log(checkForCheck(color));
@@ -295,7 +297,7 @@ function dragStart() {
 
     for (let field of legalFields) {
         if (field !== undefined) {
-            setUpLegalFields(field);
+            setUpLegalFields(field, piece);
         }
     }
 
@@ -305,7 +307,7 @@ function dragStart() {
  * applies listeners and classes to a field that is legal for the given piece.
  * @param legalField the field the piece is allowed to move on.
  */
-function setUpLegalFields(legalField) {
+function setUpLegalFields(legalField, piece) {
     let domField = document.getElementById(legalField.id);
     if (containsPiece(legalField)) {
         domField.classList.add('take');
@@ -316,8 +318,20 @@ function setUpLegalFields(legalField) {
     domField.addEventListener('dragleave', dragLeave);
     domField.addEventListener('dragenter', dragEnter);
     domField.addEventListener('drop', dragDrop);
-}
 
+    if (piece.type === 'pawn') {
+        if (legalField.y === 1 || legalField.y === 8) {
+            let domField = document.getElementById(legalField.id);
+            domField.removeEventListener('drop', dragDrop);
+            domField.addEventListener('drop', async function () {
+                await createPiecePicker(legalField, piece.color);
+                createBoard();
+
+            });
+        }
+
+    }
+}
 
 function dragEnd() {
     createBoard();
@@ -580,28 +594,23 @@ function getPawnMoves(field) {
         legalMoves.push(jsonCopy(fieldUpLeft));
 
     }
-    //filter behind pawn according to color.
+
+        //filter behind pawn according to color.
+    let filteredMoves = legalMoves.filter(legalField => {
+        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
+    });
+    console.log(filteredMoves);
+
     //let filterMoves = function (legalField) {};
     let fieldRight = getFieldByXY(field.x + 1, field.y);
     let fieldLeft = getFieldByXY(field.x - 1, field.y);
-    getEnPassant(fieldRight, field, fieldUpRight, legalMoves);
-    getEnPassant(fieldLeft, field, fieldUpLeft, legalMoves);
-    legalMoves.filter(legalField => function () {
-        return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
-    });
-    for (let legalMove of legalMoves) {
-        if (legalMove.hasOwnProperty('y')) {
-            if (legalMove.y === 1 || legalMove.y === 8) {
-                document.getElementById(legalMove.id).addEventListener('drop', function () {
-                    createPiecePicker(legalMove, legalMove.piece.color)
-                })
-            }
-        }
-    }
-    return legalMoves;
+    getEnPassant(fieldRight, field, fieldUpRight, filteredMoves);
+    getEnPassant(fieldLeft, field, fieldUpLeft, filteredMoves);
+
+    return filteredMoves;
 }
 
-function createPiecePicker(field, color) {
+async function createPiecePicker(field, color) {
     let pieceArray = piecePicker(color);
     let container = document.createElement('div');
     let contentDiv = document.getElementById('content-div');
@@ -612,17 +621,34 @@ function createPiecePicker(field, color) {
             let pieceBox = document.createElement('div');
             let imgDiv = createImgFromField(field, true);
             pieceBox.appendChild(imgDiv);
-            piece.addEventListener('click', piecePicked);
+            pieceBox.addEventListener('click', function () {
+                console.log(this);
+                console.log("klappt");
+                //field.piece =
+                pieceWasPicked = true;
+            });
             pieceBox.classList.add('piece-in-piece-picker');
             container.appendChild(pieceBox);
         }
     }
     contentDiv.append(container);
+    let promise = await waitForPiecePicked();
+}
+
+async function waitForPiecePicked() {
+    return new Promise(resolve => {
+        let timer = setInterval(function () {
+            if (pieceWasPicked === true) {
+                clearInterval(timer);
+                resolve();
+            }
+        }, 20);
+    });
 }
 
 
 function piecePicked() {
-
+    pieceWasPicked = true;
 }
 
 /**
@@ -649,15 +675,15 @@ function getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
                 enemeyDomField.classList.add('take');
                 legalMoves.push(captureMoveField);
                 domField.removeEventListener('drop', dragDrop);
-                domField.addEventListener('drop', function (event) {
-                    executeEnpassant(enemyField, currentField, captureMoveField, event)
+                domField.addEventListener('drop', function () {
+                    executeEnpassant(enemyField, currentField, captureMoveField)
                 });
             }
         }
     }
 }
 
-function executeEnpassant(enemyField, currentField, captureMoveField, event) {
+function executeEnpassant(enemyField, currentField, captureMoveField) {
 
     let movedPiece = getField(currentField.id).piece;
     movedPiece.moveNumber += 1;
@@ -791,7 +817,8 @@ function displayNotation() {
     whiteTh.innerText = 'White';
     let tr = document.createElement('tr');
     table.append(whiteTh, blackTh);
-    for (let i = 0; i < moveTracker.length; i++) {
+    let i = moveTracker.length < 15 ? 0 : 15;
+    for (i; i < moveTracker.length; i++) {
 
         let td = document.createElement('td');
         td.innerText = moveTracker[i][1];
