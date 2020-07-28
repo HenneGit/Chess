@@ -20,13 +20,15 @@ const positions = {
 };
 
 const piecePicker = function (color) {
-    return [new Piece('bishop', color, color + "-bishop.svg", 0),
-        new Piece('knight', color, color + "-knight.svg", 0),
-        new Piece('rook', color, color + "-rook.svg", 0),
-        new Piece('queen', color, color + "-queen.svg", 0)];
+    let piecePickerMap = new Map;
+    piecePickerMap.set('bishop', new Piece('bishop', color, color + "-bishop.svg", 0));
+    piecePickerMap.set('knight', new Piece('knight', color, color + "-knight.svg", 0));
+    piecePickerMap.set('rook', new Piece('rook', color, color + "-rook.svg", 0));
+    piecePickerMap.set('queen', new Piece('queen', color, color + "-queen.svg", 0));
+    return piecePickerMap;
 };
 
-let pieceWasPicked = false;
+let pieceWasPicked = true;
 
 const directions = {
     diagonal: {
@@ -248,15 +250,6 @@ function flip() {
     }
 }
 
-/**
- * move piece from sourceField to targetField.
- * @param sourceField starting Field.
- * @param targetField field to move to.
- */
-function move(sourceField, targetField) {
-
-    updateField(sourceField.id, targetField.id);
-}
 
 /**
  * start dragging a piece. Applies classes.
@@ -319,22 +312,17 @@ function setUpLegalFields(legalField, piece) {
     domField.addEventListener('dragenter', dragEnter);
     domField.addEventListener('drop', dragDrop);
 
-    if (piece.type === 'pawn') {
-        if (legalField.y === 1 || legalField.y === 8) {
-            let domField = document.getElementById(legalField.id);
-            domField.removeEventListener('drop', dragDrop);
-            domField.addEventListener('drop', async function () {
-                await createPiecePicker(legalField, piece.color);
-                createBoard();
-
-            });
-        }
-
-    }
 }
 
 function dragEnd() {
-    createBoard();
+
+    let interval = setInterval(function () {
+        if (pieceWasPicked === true) {
+            clearInterval(interval);
+            createBoard();
+        }
+    }, 10);
+
 }
 
 /**
@@ -381,17 +369,21 @@ function resolveDrop(oldFieldId, newFieldId) {
 /**
  * triggered when a piece was dropped on a field.
  */
-function dragDrop() {
+async function dragDrop() {
     let draggedElement = document.querySelector('.dragged');
-    if (draggedElement !== null) {
+    let dropField = getField(this.id);
+    let oldFieldId = draggedElement.parentElement.id;
+    let oldField = getField(oldFieldId);
+    let movedPiece = oldField.piece;
+    if (movedPiece.type === 'pawn' && (dropField.y === 1 || dropField.y === 8)) {
+        pieceWasPicked = false;
+        await createPiecePicker(dropField, oldField, movedPiece.color);
 
-        let oldFieldId = draggedElement.parentElement.id;
-        let movedPiece = getField(oldFieldId).piece;
+    } else {
         movedPiece.moveNumber += 1;
         resolveDrop(oldFieldId, this.id);
+        createBoard();
     }
-    createBoard();
-
 }
 
 
@@ -595,7 +587,7 @@ function getPawnMoves(field) {
 
     }
 
-        //filter behind pawn according to color.
+    //filter behind pawn according to color.
     let filteredMoves = legalMoves.filter(legalField => {
         return color === 'black' ? legalField.y < field.y : legalField.y > field.y;
     });
@@ -610,22 +602,22 @@ function getPawnMoves(field) {
     return filteredMoves;
 }
 
-async function createPiecePicker(field, color) {
-    let pieceArray = piecePicker(color);
+async function createPiecePicker(dropField, oldField, color) {
+    let pieceMap = piecePicker(color);
     let container = document.createElement('div');
     let contentDiv = document.getElementById('content-div');
     container.id = 'piece-picker-box';
-    for (let piece of pieceArray) {
+    for (let [pieceType, piece]  of pieceMap) {
         if (piece.hasOwnProperty('svg')) {
-            field.piece = piece;
+            let newField = new Field(piece, dropField.id, dropField.x, dropField.y);
             let pieceBox = document.createElement('div');
-            let imgDiv = createImgFromField(field, true);
+            let imgDiv = createImgFromField(newField, true);
             pieceBox.appendChild(imgDiv);
+            pieceBox.setAttribute('piece', pieceType);
             pieceBox.addEventListener('click', function () {
-                console.log(this);
-                console.log("klappt");
-                //field.piece =
+                oldField.piece = pieceMap.get(this.getAttribute('piece'));
                 pieceWasPicked = true;
+                resolveDrop(oldField.id, dropField.id);
             });
             pieceBox.classList.add('piece-in-piece-picker');
             container.appendChild(pieceBox);
