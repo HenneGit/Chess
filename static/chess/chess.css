@@ -9,6 +9,7 @@
 #panel {
     display: grid;
     grid-template-rows: 1fr 6fr 1fr;
+    /* position: relative; */
 }
 
 #y-axis {
@@ -40,6 +41,7 @@ img {
     grid-template-rows: repeat(8, 1fr);
     grid-template-columns: repeat(8, 1fr);
 }
+
 
 .field {
     display: grid;
@@ -100,4 +102,13 @@ img {
 
 .piece {
     color: white;
+}
+
+#piece-picker-box{
+    display: grid;
+    border: 1px solid lightslategray;
+    background: white;
+    z-index: 2;
+    align-items: center;
+    justify-items: center;
 }

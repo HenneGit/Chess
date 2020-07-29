@@ -118,6 +118,7 @@ function createBoard() {
         domField.classList.add('field');
         domField.setAttribute('x', field.x);
         domField.setAttribute('y', field.y);
+        domField.style.gridArea = field.y + "/" + field.x;
         if (field.piece !== null) {
             let imgDiv = createImgFromField(field, true);
             domField.appendChild(imgDiv);
@@ -605,8 +606,10 @@ function getPawnMoves(field) {
 async function createPiecePicker(dropField, oldField, color) {
     let pieceMap = piecePicker(color);
     let container = document.createElement('div');
-    let contentDiv = document.getElementById('content-div');
+    let contentDiv = document.getElementById('board-div');
     container.id = 'piece-picker-box';
+    container.style.gridArea = 1 + "/" + dropField.x + "/" + 5;
+
     for (let [pieceType, piece]  of pieceMap) {
         if (piece.hasOwnProperty('svg')) {
             let newField = new Field(piece, dropField.id, dropField.x, dropField.y);
