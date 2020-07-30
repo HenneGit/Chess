@@ -1,14 +1,7 @@
 'use strict';
 
 const positions = {
-    "a8": new Piece('rook', 'black', 'black-rook.svg', 0),
-    "b8": new Piece('knight', 'black', "black-knight.svg", 0),
-    "c8": new Piece('bishop', 'black', "black-bishop.svg", 0),
-    "d8": new Piece('queen', 'black', "black-queen.svg", 0),
-    "e8": new Piece('king', 'black', "black-king.svg", 0),
-    "f8": new Piece('bishop', 'black', "black-bishop.svg", 0),
-    "g8": new Piece('knight', 'black', "black-knight.svg", 0),
-    "h8": new Piece('rook', 'black', "black-rook.svg", 0),
+
     "a1": new Piece('rook', 'white', "white-rook.svg", 0),
     "b1": new Piece('knight', 'white', "white-knight.svg", 0),
     "c1": new Piece('bishop', 'white', "white-bishop.svg", 0),
@@ -16,7 +9,15 @@ const positions = {
     "e1": new Piece('king', 'white', "white-king.svg", 0),
     "f1": new Piece('bishop', 'white', "white-bishop.svg", 0),
     "g1": new Piece('knight', 'white', "white-knight.svg", 0),
-    "h1": new Piece('rook', 'white', "white-rook.svg", 0)
+    "h1": new Piece('rook', 'white', "white-rook.svg", 0),
+    "a8": new Piece('rook', 'black', 'black-rook.svg', 0),
+    "b8": new Piece('knight', 'black', "black-knight.svg", 0),
+    "c8": new Piece('bishop', 'black', "black-bishop.svg", 0),
+    "d8": new Piece('queen', 'black', "black-queen.svg", 0),
+    "e8": new Piece('king', 'black', "black-king.svg", 0),
+    "f8": new Piece('bishop', 'black', "black-bishop.svg", 0),
+    "g8": new Piece('knight', 'black', "black-knight.svg", 0),
+    "h8": new Piece('rook', 'black', "black-rook.svg", 0)
 };
 
 const piecePicker = function (color) {
@@ -46,10 +47,10 @@ const directions = {
 };
 
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+const flippedNumber = [8,7,6,5,4,3,2,1];
 
 let board = null;
 const boardHistory = [];
-let moveCounter = 0;
 let moveTracker = [];
 
 function Piece(type, color, svg, moveNumber) {
@@ -110,6 +111,7 @@ function createBoard() {
     clearElement(contentDiv);
     let boardDiv = getDiv('board-div');
     let blackOrWhite = -1;
+
     for (let field of board.fields) {
 
         let domField = getDiv(field.id);
@@ -118,9 +120,9 @@ function createBoard() {
         domField.classList.add('field');
         domField.setAttribute('x', field.x);
         domField.setAttribute('y', field.y);
-        domField.style.gridArea = field.y + "/" + field.x;
+        domField.style.gridArea = flippedNumber[field.y-1] + "/" + field.x;
         if (field.piece !== null) {
-            let imgDiv = createImgFromField(field, true);
+            let imgDiv = createImgFromField(field);
             domField.appendChild(imgDiv);
         }
         boardDiv.appendChild(domField);
@@ -128,6 +130,7 @@ function createBoard() {
         if (field.x === 1) {
             blackOrWhite = blackOrWhite * -1;
         }
+
     }
     contentDiv.appendChild(boardDiv);
     let xAxis = getDiv("x-axis");
@@ -136,11 +139,10 @@ function createBoard() {
     appendAxis(xAxis, false);
     contentDiv.appendChild(yAxis);
     contentDiv.appendChild(xAxis);
-
     let panel = getDiv('panel');
+    flip();
     createPanel(panel);
     contentDiv.appendChild(panel);
-    flip();
     console.log(Array.from(board));
     console.log(getAllFieldsWithPiecesByColor('black'));
     console.log(getAllFieldsWithPiecesByColor('white'));
@@ -608,9 +610,10 @@ async function createPiecePicker(dropField, oldField, color) {
     let container = document.createElement('div');
     let contentDiv = document.getElementById('board-div');
     container.id = 'piece-picker-box';
-    container.style.gridArea = 1 + "/" + dropField.x + "/" + 5;
+    let sideOfTheBoard = color === 'white' ? 1 : 9;
+    container.style.gridArea = sideOfTheBoard + "/" + dropField.x + "/" + 5;
 
-    for (let [pieceType, piece]  of pieceMap) {
+    for (let [pieceType, piece] of pieceMap) {
         if (piece.hasOwnProperty('svg')) {
             let newField = new Field(piece, dropField.id, dropField.x, dropField.y);
             let pieceBox = document.createElement('div');
@@ -641,10 +644,6 @@ async function waitForPiecePicked() {
     });
 }
 
-
-function piecePicked() {
-    pieceWasPicked = true;
-}
 
 /**
  * check if en passant is valid and add according move.
