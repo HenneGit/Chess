@@ -47,11 +47,12 @@ const directions = {
 };
 
 const letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
-const flippedNumber = [8,7,6,5,4,3,2,1];
+const flippedNumber = [8, 7, 6, 5, 4, 3, 2, 1];
 
 let board = null;
 const boardHistory = [];
 let moveTracker = [];
+let turnNumber = -1;
 
 function Piece(type, color, svg, moveNumber) {
     this.type = type;
@@ -79,7 +80,7 @@ newGame();
  * init a new board with pieces in starting position.
  */
 function newGame() {
-
+    turnNumber = -1;
     let fields = [];
     let graveyard = [];
 
@@ -99,20 +100,20 @@ function newGame() {
     }
     board = new Board(fields, graveyard);
     console.log(board);
-    createBoard();
+    createBoard(board);
 }
 
 /**
  * create the board and add pieces to it.
- * @param board
+ * @param currentBoard the board to create the field from.
  */
-function createBoard() {
+function createBoard(currentBoard) {
     let contentDiv = document.getElementById('content-div');
     clearElement(contentDiv);
-    let boardDiv = getDiv('board-div');
+    let boardDiv = createElement('div', 'board-div');
     let blackOrWhite = -1;
 
-    for (let field of board.fields) {
+    for (let field of currentBoard.fields) {
 
         let domField = getDiv(field.id);
         let classType = blackOrWhite < 0 ? 'white' : 'black';
@@ -120,7 +121,7 @@ function createBoard() {
         domField.classList.add('field');
         domField.setAttribute('x', field.x);
         domField.setAttribute('y', field.y);
-        domField.style.gridArea = flippedNumber[field.y-1] + "/" + field.x;
+        domField.style.gridArea = flippedNumber[field.y - 1] + "/" + field.x;
         if (field.piece !== null) {
             let imgDiv = createImgFromField(field);
             domField.appendChild(imgDiv);
@@ -143,10 +144,7 @@ function createBoard() {
     flip();
     createPanel(panel);
     contentDiv.appendChild(panel);
-    console.log(Array.from(board));
-    console.log(getAllFieldsWithPiecesByColor('black'));
-    console.log(getAllFieldsWithPiecesByColor('white'));
-    console.log(board);
+    displayNotation();
 
 }
 
@@ -322,7 +320,7 @@ function dragEnd() {
     let interval = setInterval(function () {
         if (pieceWasPicked === true) {
             clearInterval(interval);
-            createBoard();
+            createBoard(board);
         }
     }, 10);
 
@@ -366,6 +364,8 @@ function dragLeave(event) {
 function resolveDrop(oldFieldId, newFieldId) {
     updateField(oldFieldId, newFieldId);
     moveTracker.push([oldFieldId, newFieldId]);
+    turnNumber += 1;
+
 }
 
 
@@ -385,7 +385,7 @@ async function dragDrop() {
     } else {
         movedPiece.moveNumber += 1;
         resolveDrop(oldFieldId, this.id);
-        createBoard();
+        createBoard(board);
     }
 }
 
@@ -605,6 +605,13 @@ function getPawnMoves(field) {
     return filteredMoves;
 }
 
+/**
+ * creates a box to pick a piece when a pawn reached eneymies base line.
+ * @param dropField the field the pawn is reaching
+ * @param oldField the field the pawn is coming from
+ * @param color color of the pawn
+ * @returns {Promise<void>}
+ */
 async function createPiecePicker(dropField, oldField, color) {
     let pieceMap = piecePicker(color);
     let container = document.createElement('div');
@@ -630,9 +637,13 @@ async function createPiecePicker(dropField, oldField, color) {
         }
     }
     contentDiv.append(container);
-    let promise = await waitForPiecePicked();
+    await waitForPiecePicked();
 }
 
+/**
+ * waits till a piece was picked.
+ * @returns {Promise<Promise<unknown>>} a promise that is resolved when a piece was picked.
+ */
 async function waitForPiecePicked() {
     return new Promise(resolve => {
         let timer = setInterval(function () {
@@ -677,6 +688,12 @@ function getEnPassant(enemyField, currentField, captureMoveField, legalMoves) {
     }
 }
 
+/**
+ * execute en passant with a pawn.
+ * @param enemyField the enemy field containing a pawn.
+ * @param currentField the field the pawn is on
+ * @param captureMoveField the en passant field just behind enemy pawn field.
+ */
 function executeEnpassant(enemyField, currentField, captureMoveField) {
 
     let movedPiece = getField(currentField.id).piece;
@@ -687,10 +704,14 @@ function executeEnpassant(enemyField, currentField, captureMoveField) {
     board.graveyard.push(captureField.piece);
     captureField.piece = null;
     resolveDrop(currentField.id, captureMoveField.id);
-    createBoard();
+    createBoard(board);
 
 }
 
+/**
+ * castle on the right site of the board.
+ * @param kingField the field the king is on.
+ */
 function castleRight(kingField) {
     let rookField = getFieldByXY(kingField.x + 3, kingField.y);
     getField(kingField.id).piece.moveNumber += 1;
@@ -701,10 +722,14 @@ function castleRight(kingField) {
     let moveTargetKing = getFieldByXY(kingField.x + 2, kingField.y);
 
     resolveDrop(kingField.id, moveTargetKing.id);
-    createBoard();
+    createBoard(board);
 
 }
 
+/**
+ * castle on the left side of the board.
+ * @param kingField the field the king is on.
+ */
 function castleLeft(kingField) {
     let rookField = getFieldByXY(kingField.x - 4, kingField.y);
     getField(kingField.id).piece.moveNumber += 1;
@@ -715,7 +740,7 @@ function castleLeft(kingField) {
     let moveTargetKing = getFieldByXY(kingField.x - 2, kingField.y);
 
     resolveDrop(kingField.id, moveTargetKing.id);
-    createBoard();
+    createBoard(board);
 }
 
 function getBishopMoves(field) {
@@ -804,6 +829,7 @@ function displayNotation() {
     }
     let notationDiv = document.createElement('div');
     notationDiv.id = 'notationDiv';
+    notationDiv.append(createTurnButtons());
     let table = document.createElement('table');
     let blackTh = document.createElement('th');
     blackTh.innerText = "Black";
@@ -827,6 +853,42 @@ function displayNotation() {
     notationDiv.append(table);
     details.append(notationDiv);
 }
+
+function createElement(type, id) {
+    let el = document.createElement(type);
+    el.id = id;
+    return el;
+}
+
+function createTurnButtons() {
+    let buttonDiv = createElement('div', 'turn-buttons');
+    let buttonBack = createElement('div', 'back-button');
+    buttonBack.addEventListener('click', function () {
+        createBoard(boardHistory[turnNumber -= 1])
+    });
+
+    let buttonForward = createElement('div', 'forward-button');
+    buttonForward.addEventListener('click', function () {
+        if (turnNumber <= boardHistory.length){
+            createBoard(boardHistory[turnNumber += 1]);
+        } else {
+            createBoard(boardHistory[boardHistory.length - 1]);
+        }
+    });
+    let buttonStart = createElement('div', 'start-button');
+    buttonStart.addEventListener('click', function () {
+        createBoard(boardHistory[turnNumber = 0])
+    });
+    let buttonEnd = createElement('div', 'end-button');
+    buttonEnd.addEventListener('click', function () {
+        turnNumber = boardHistory.length;
+        createBoard(boardHistory[turnNumber])
+    });
+
+    buttonDiv.append(buttonStart, buttonBack, buttonForward, buttonEnd);
+    return buttonDiv;
+}
+
 
 /**
  * decides which legal moves to return according to given peace.

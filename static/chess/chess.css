@@ -78,7 +78,7 @@ img {
 
 .graveyard {
     display: grid;
-    grid-template-columns: repeat(16,1fr);
+    grid-template-columns: repeat(16, 1fr);
     width: 100px;
     background-color: aquamarine;
 }
@@ -104,11 +104,46 @@ img {
     color: white;
 }
 
-#piece-picker-box{
+#piece-picker-box {
     display: grid;
     border: 1px solid lightslategray;
     background: white;
     z-index: 2;
     align-items: center;
     justify-items: center;
+}
+
+#back-button {
+    height: 10px;
+    width: 10px;
+    background-color: red;
+    cursor: pointer;
+}
+
+#forward-button {
+    background-color: green;
+    cursor: pointer;
+    height: 10px;
+    width: 10px;
+}
+
+#start-button {
+    background-color: palegreen;
+    cursor: pointer;
+    height: 10px;
+    width: 10px;
+}
+
+#end-button {
+    background-color: greenyellow;
+    cursor: pointer;
+    height: 10px;
+    width: 10px;
+
+}
+
+#turn-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+
 }
