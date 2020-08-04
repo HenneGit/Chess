@@ -2,22 +2,22 @@
 
 const positions = {
 
-    "a1": new Piece('rook', 'white', "white-rook.svg", 0),
-    "b1": new Piece('knight', 'white', "white-knight.svg", 0),
-    "c1": new Piece('bishop', 'white', "white-bishop.svg", 0),
-    "d1": new Piece('queen', 'white', "white-queen.svg", 0),
-    "e1": new Piece('king', 'white', "white-king.svg", 0),
-    "f1": new Piece('bishop', 'white', "white-bishop.svg", 0),
-    "g1": new Piece('knight', 'white', "white-knight.svg", 0),
-    "h1": new Piece('rook', 'white', "white-rook.svg", 0),
-    "a8": new Piece('rook', 'black', 'black-rook.svg', 0),
-    "b8": new Piece('knight', 'black', "black-knight.svg", 0),
-    "c8": new Piece('bishop', 'black', "black-bishop.svg", 0),
-    "d8": new Piece('queen', 'black', "black-queen.svg", 0),
-    "e8": new Piece('king', 'black', "black-king.svg", 0),
-    "f8": new Piece('bishop', 'black', "black-bishop.svg", 0),
-    "g8": new Piece('knight', 'black', "black-knight.svg", 0),
-    "h8": new Piece('rook', 'black', "black-rook.svg", 0)
+    "a1": new Piece('rook', 'white', "white-rook.svg", 0, 3),
+    "b1": new Piece('knight', 'white', "white-knight.svg", 0, 1),
+    "c1": new Piece('bishop', 'white', "white-bishop.svg", 0, 2),
+    "d1": new Piece('queen', 'white', "white-queen.svg", 0, 4),
+    "e1": new Piece('king', 'white', "white-king.svg", 0, 6),
+    "f1": new Piece('bishop', 'white', "white-bishop.svg", 0, 2),
+    "g1": new Piece('knight', 'white', "white-knight.svg", 0, 1),
+    "h1": new Piece('rook', 'white', "white-rook.svg", 0, 3),
+    "a8": new Piece('rook', 'black', 'black-rook.svg', 0, 3),
+    "b8": new Piece('knight', 'black', "black-knight.svg", 0, 1),
+    "c8": new Piece('bishop', 'black', "black-bishop.svg", 0, 2),
+    "d8": new Piece('queen', 'black', "black-queen.svg", 0, 4),
+    "e8": new Piece('king', 'black', "black-king.svg", 0, 6),
+    "f8": new Piece('bishop', 'black', "black-bishop.svg", 0, 2),
+    "g8": new Piece('knight', 'black', "black-knight.svg", 0, 1),
+    "h8": new Piece('rook', 'black', "black-rook.svg", 0, 3)
 };
 
 const piecePicker = function (color) {
@@ -54,11 +54,12 @@ const boardHistory = [];
 let moveTracker = [];
 let turnNumber = -1;
 
-function Piece(type, color, svg, moveNumber) {
+function Piece(type, color, svg, moveNumber, sort) {
     this.type = type;
     this.color = color;
     this.svg = svg;
     this.moveNumber = moveNumber;
+    this.sort = sort;
 }
 
 function Field(piece, id, x, y) {
@@ -91,7 +92,7 @@ function newGame() {
             if (i === 2 || i === 7) {
                 let color = i === 7 ? 'black' : 'white';
                 let svg = i === 7 ? 'black-pawn.svg' : 'white-pawn.svg';
-                piece = new Piece('pawn', color, svg, false);
+                piece = new Piece('pawn', color, svg, 0, 0);
             }
 
             let field = new Field(piece, letter + i, j, i);
@@ -142,10 +143,20 @@ function createBoard(currentBoard) {
     contentDiv.appendChild(xAxis);
     let panel = getDiv('panel');
     flip();
+
     createPanel(panel);
-    contentDiv.appendChild(panel);
+    contentDiv.append(panel, addFlipButton());
     displayNotation();
 
+}
+
+function addFlipButton() {
+    let container = createElement('div', 'flip-button');
+    let img = createElement('img', 'flip-svg');
+    img.src = "flip.svg";
+    container.append(img);
+    container.addEventListener('click', flip);
+    return container;
 }
 
 /**
@@ -175,7 +186,11 @@ function createPanel(panel) {
 }
 
 function appendPiecesToGraveyard(pieces, graveyard) {
-    Array.from(pieces).forEach(piece => {
+    let sortablePieceArray = Array.from(pieces);
+    sortablePieceArray.sort(function (a, b) {
+        return b.sort - a.sort;
+    });
+    sortablePieceArray.forEach(piece => {
         let img = document.createElement('img');
         let imgDiv = document.createElement('div');
         img.src = piece.svg;
@@ -240,13 +255,24 @@ function appendAxis(axis, hasLetters) {
  * mirror the board.
  */
 function flip() {
-    let boarDiv = document.getElementById('board-div');
+    let boardDiv = document.getElementById('board-div');
+    let domFields = document.querySelectorAll('.field');
     let xAxis = document.getElementById('x-axis');
     let yAxis = document.getElementById('y-axis');
-    let elements = [boarDiv, xAxis, yAxis];
+    let elements = [boardDiv, xAxis, yAxis];
     for (let element of elements) {
         for (let i = 1; i < element.childNodes.length; i++) {
             element.insertBefore(element.childNodes[i], element.firstChild);
+        }
+    }
+    for (let domField of domFields) {
+        if (boardDiv.firstChild.id === 'a8') {
+
+            domField.style.gridArea = flippedNumber[domField.getAttribute('y') - 1] + "/" + domField.getAttribute('x');
+        } else {
+
+            domField.style.gridArea = domField.getAttribute('y') + "/" + domField.getAttribute('x');
+
         }
     }
 }
@@ -869,7 +895,7 @@ function createTurnButtons() {
 
     let buttonForward = createElement('div', 'forward-button');
     buttonForward.addEventListener('click', function () {
-        if (turnNumber <= boardHistory.length){
+        if (turnNumber <= boardHistory.length) {
             createBoard(boardHistory[turnNumber += 1]);
         } else {
             createBoard(boardHistory[boardHistory.length - 1]);
